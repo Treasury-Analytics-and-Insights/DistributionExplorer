@@ -1,8 +1,8 @@
 # Introduction
 This package contains prototype software for running the Income Distribution 
-Explorer application. This software was developed by an intern who joined the
-Analytics and Insights team during the summer of 2021/22 as part of the Analytics
-and Research in Government internship programme.
+Explorer application. This software was developed by Boston Hart during the 
+summer of 2021/22. Boston joined the Analytics and Insights team as part of
+the Analytics and Research in Government internship programme.
 
 The Income Distribution Explorer is a tool which can be used to understand the
 income distribution for households and families in New Zealand.
