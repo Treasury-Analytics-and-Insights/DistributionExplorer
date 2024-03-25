@@ -7,13 +7,13 @@ library(openxlsx)
 #update to match new data
 
 #format: YY
-hes <- "21"
+hes <- "23"
 
 #e.g. "HYEFU21"
-efu <- "HYEFU21"
+efu <- "HYEFU23"
 
 #format YYYY-MM-DD
-gen_date <- "2024-02-29"
+gen_date <- "2024-03-25"
 
 #format: YY
 years <- c("25", "26", "27", "28")
