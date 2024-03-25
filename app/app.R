@@ -35,7 +35,7 @@ groupsFam = c(
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
 
 ui <- (navbarPage(
-  "Income Distribution Explorer",
+  "||DRAFT|| Income Distribution Explorer",
   theme = bslib::bs_theme(bootswatch = "cosmo",
                           bg = "#FFFFFF",
                           fg = "#00718f",
@@ -43,6 +43,13 @@ ui <- (navbarPage(
                           secondary = "#00718f"),
   tabPanel(
     "Tools",
+    fluidRow(
+      column(1),
+      column(10,
+             "This is a draft version of the Distribution Explorer that includes preliminary data."
+      ),
+      column(1)
+    ),
     fluidRow(
       column(1),
       column(10,
