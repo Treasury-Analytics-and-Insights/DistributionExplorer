@@ -33,7 +33,6 @@ groupsFam = c(
 
 # Color blind palette for plotting
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
-
 ui <- (navbarPage(
   "||DRAFT|| Income Distribution Explorer",
   theme = bslib::bs_theme(bootswatch = "cosmo",
@@ -55,6 +54,19 @@ ui <- (navbarPage(
       column(10,
     sidebarLayout(
       sidebarPanel(
+        
+        "Select Distribution Type:",
+        radioGroupButtons(
+          inputId = "y_type",
+          label = NULL,
+          choices = c("Population", "Income"),
+          selected = "Population",
+          checkIcon = list(yes = icon("ok", 
+                                      lib = "glyphicon")),
+          justified = TRUE,
+          width = '100%'
+        ),
+        
         #For selecting the tax year from a given HES/EFU combination
         "Select Tax Year(s):",
         pickerInput(
@@ -76,7 +88,6 @@ ui <- (navbarPage(
           choices = c(Households = 'Household',
                       Families = "Family"),
           justified = TRUE,
-          direction = 'vertical',
           checkIcon = list(yes = icon("ok", 
                                       lib = "glyphicon")),
           width = '100%'),
@@ -127,7 +138,7 @@ ui <- (navbarPage(
         # When households is selected
         conditionalPanel(
           condition = "input.populationType == 'Household' && input.chosen_file.length > 1",
-          "Select Population Subgroup:",
+          "Select Population Subgroup(s):",
           tooltip(
             bsicons::bs_icon("question-circle"),
             "Household is in a subgroup when at least one individual in the household is: of selected age | in slected family type | receiving selected benefit",
@@ -146,7 +157,7 @@ ui <- (navbarPage(
         # When family is selected
         conditionalPanel(
           condition = "input.populationType == 'Family' && input.chosen_file.length > 1",
-          "Select Population Subgroup:",
+          "Select Population Subgroup(s):",
           tooltip(
             bsicons::bs_icon("question-circle"),
             "Family is in a subgroup when at least one individual in the family is: of selected age | in slected family type | receiving selected benefit",
@@ -233,7 +244,7 @@ ui <- (navbarPage(
           status = "primary"),
         
         conditionalPanel(
-          condition = "input.chosen_file.length > 1",
+          condition = "input.chosen_file.length > 1 && input.y_type == 'Population'",
           textOutput("normalised_text", inline = TRUE),
           tooltip(
             bsicons::bs_icon("question-circle"),
@@ -244,25 +255,28 @@ ui <- (navbarPage(
             inputId = "normalised",
             label = NULL, 
             value = FALSE,
-            status = "primary"),
+            status = "primary")
         )
       ),
       
       mainPanel(
         tabsetPanel(
+          type = "pills",
           tabPanel(
             "Plots",
+            hr(),
             plotlyOutput("ventilePlot"),
             conditionalPanel(
               condition = "input.pairPlot == 1",
               p("Ventiles", align = "center",style = "color:black; margin-top: -5px; margin-bottom: -5px")
             ),
+            hr(),
             plotlyOutput("incomeBandPlot"),
             conditionalPanel(
               condition = "input.pairPlot == 1",
               p("Income Bands", align = "center",style = "color:black; margin-top: -5px; margin-bottom: -5px")
             ),
-            br()
+            hr()
           ),
           tabPanel(
             "Tables",
@@ -287,7 +301,7 @@ ui <- (navbarPage(
             br(),
             downloadButton(outputId = "downloadData2",
                            label = "Download Data"),
-            br()
+            hr()
           )
         )
       )
@@ -395,6 +409,11 @@ ui <- (navbarPage(
 
 
 server <- function(input, output, session) {
+  
+  #stops normalised selection from preventing switch to income mode
+  observeEvent(input$y_type == "Income", {
+    updateMaterialSwitch(session, "normalised", value = FALSE)
+  })
 
   data_year = reactive({
     year_list <- NULL
@@ -496,7 +515,7 @@ server <- function(input, output, session) {
     if(length(input$chosen_file) > 1){
       fill <- "file"
       label <- "Years"
-      subtitle <- str_to_title(show_groups())
+      subtitle <- show_groups()
     }
     else {
       fill <- "Description"
@@ -515,22 +534,31 @@ server <- function(input, output, session) {
     
     if(input$normalised) {
       pop_type <- "Normalised"
-      dataset = dataset[Normalised=="S", Normalised := 0L]
+      dataset = dataset[Normalised == "S", Normalised := 0L]
       dataset = dataset[,Normalised := as.numeric(Normalised)]
       y_label <- "Normalised Population"
+      title_start <- "Population Distribution"
     }
-    else {
+    else if (input$y_type == "Population") {
       pop_type <- "Population"
-      dataset = dataset[Population=="S", Population := 0L]
+      dataset = dataset[Population == "S", Population := 0L]
       dataset = dataset[,Population := as.numeric(Population)]
       y_label <- "Population"
+      title_start <- "Population Distribution"
+    }
+    else {
+      pop_type <- "Value"
+      dataset = dataset[Value == "S", Value := 0L]
+      dataset = dataset[,Value := as.numeric(Value)]
+      y_label <- paste0("Average ", input$populationType, " \n", income_sort())
+      title_start <- "Average Incomes"
     }
     
     ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
                        & Income.Measure == income_sort()]
 
     p = ggplot(ventiles, aes(x = as.numeric(Income.Group), y = get(pop_type), fill = get(fill))) +
-      labs(title = paste0(str_to_title(paste("Population Distribution By", input$populationType, income_sort(), "Ventiles", sep = " ")), "\n", subtitle),
+      labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Ventiles", "\n", subtitle),
            x = x_label, y = y_label) +
       scale_x_continuous(breaks = seq(1:20)) +
       scale_y_continuous(labels = comma,limits = c(0, NA),
@@ -601,7 +629,7 @@ server <- function(input, output, session) {
     if(length(input$chosen_file) > 1){
       fill <- "file"
       label <- "Years"
-      subtitle <- str_to_title(show_groups())
+      subtitle <- show_groups()
     }
     else {
       fill <- "Description"
@@ -620,15 +648,24 @@ server <- function(input, output, session) {
     
     if(input$normalised) {
       pop_type <- "Normalised"
-      dataset = dataset[Normalised=="S", Normalised := 0L]
+      dataset = dataset[Normalised == "S", Normalised := 0L]
       dataset = dataset[,Normalised := as.numeric(Normalised)]
       y_label <- "Normalised Population"
+      title_start <- "Population Distribution"
     }
-    else {
+    else if (input$y_type == "Population") {
       pop_type <- "Population"
-      dataset = dataset[Population=="S", Population := 0L]
+      dataset = dataset[Population == "S", Population := 0L]
       dataset = dataset[,Population := as.numeric(Population)]
       y_label <- "Population"
+      title_start <- "Population Distribution"
+    }
+    else {
+      pop_type <- "Value"
+      dataset = dataset[Value == "S", Value := 0L]
+      dataset = dataset[,Value := as.numeric(Value)]
+      y_label <- paste0("Average ", input$populationType, " \n", income_sort())
+      title_start <- "Average Incomes"
     }
 
     incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
@@ -650,7 +687,7 @@ server <- function(input, output, session) {
     }
 
     p = ggplot(incomeBand, aes(x = Band, y=get(pop_type), fill=get(fill))) +
-      labs(title = paste0(str_to_title(paste("Population Distribution By", input$populationType, income_sort(), "Bands", sep = " ")), "\n", subtitle),
+      labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Bands", "\n", subtitle),
            x = x_label, y = y_label) +
       scale_y_continuous(labels = comma, limits = c(0, NA),
                          expand = expansion(mult = c(0, 0.05))) +  # Includes 0 in y axis and has the top of graph 5% above the max value
@@ -721,22 +758,36 @@ server <- function(input, output, session) {
     ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
                        & Income.Measure == income_sort() & file %in% data_version_full()]
 
-    ventiles[, c("Index", "Income.Type", "Value", "file") := NULL]
+    ventiles[, c("Index", "Income.Type", "file") := NULL]
     
-    if (length(input$chosen_file) == 1) {
-      ventiles[, c("data_version", "year", "Normalised") := NULL]
-      colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value")
-    }
-    else if (input$normalised) {
-      ventiles[, c("Population") := NULL]
-      colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Normalised Population Value")
+    if (input$y_type == "Income") {
+      ventiles[, c("Population", "Normalised") := NULL]
+      if (length(input$chosen_file) == 1) {
+        ventiles[, c("data_version", "year") := NULL]
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()))
+      }
+      else {
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()), "Version", "Year")
+        setcolorder(ventiles, c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", paste0("Average ", input$populationType, " ", income_sort())))
+      }
     }
     else {
-      ventiles[, c("Normalised") := NULL]
-      colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value", "Version", "Year")
-      setcolorder(ventiles, c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value"))
+      ventiles[, c("Value") := NULL]
+      if (length(input$chosen_file) == 1) {
+        ventiles[, c("data_version", "year", "Normalised") := NULL]
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value")
+      }
+      else if (input$normalised) {
+        ventiles[, c("Population") := NULL]
+        ventiles[Normalised != "S", Normalised := round(as.numeric(Normalised))]
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Normalised Population Value")
+      }
+      else {
+        ventiles[, c("Normalised") := NULL]
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value", "Version", "Year")
+        setcolorder(ventiles, c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value"))
+      }
     }
-
     return(ventiles)
 
   })
@@ -762,12 +813,18 @@ server <- function(input, output, session) {
 
   # Table title
   output$ventileDataTitle = renderText({
-    str_to_title(paste("Population Distribution By", input$populationType, income_sort(), "Ventiles", sep = " "))
+    if (input$y_type == "Income") {
+      title_start <- "Average Incomes"
+    }
+    else{
+      title_start <- "Population Distribution"
+    }
+    paste(title_start, "by", input$populationType, income_sort(), "Ventiles", sep = " ")
   })
 
   output$ventileDataSubTitle = renderText({
     if(length(input$chosen_file) > 1){
-      str_to_title(show_groups())
+      show_groups()
     }
     else {
       paste0("Tax Year 20", data_year(), " from ", data_version())
@@ -787,22 +844,36 @@ server <- function(input, output, session) {
     incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
                          & Income.Measure == income_sort() & file %in% data_version_full()]
 
-    incomeBand[, c("Index", "Income.Type", "Value", "file") := NULL]
+    incomeBand[, c("Index", "Income.Type", "file") := NULL]
     
-    if (length(input$chosen_file) == 1) {
-      incomeBand[, c("data_version", "year", "Normalised") := NULL]
-      colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value")
+    if (input$y_type == "Income") {
+      incomeBand[, c("Population", "Normalised") := NULL]
+      if (length(input$chosen_file) == 1) {
+        incomeBand[, c("data_version", "year") := NULL]
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()))
+      }
+      else {
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()), "Version", "Year")
+        setcolorder(incomeBand, c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", paste0("Average ", input$populationType, " ", income_sort())))
+      }
     }
-    else if (input$normalised) {
-      incomeBand[, c("Population") := NULL]
-      incomeBand[Normalised != "S", Normalised := round(as.numeric(Normalised))]
-      colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Normalised Population Value")
-      
-    }
-    else {
-      incomeBand[, c("Normalised") := NULL]
-      colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value", "Version", "Year")
-      setcolorder(incomeBand, c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value"))
+    else{
+      incomeBand[, c("Value") := NULL] 
+      if (length(input$chosen_file) == 1) {
+        incomeBand[, c("data_version", "year", "Normalised") := NULL]
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value")
+      }
+      else if (input$normalised) {
+        incomeBand[, c("Population") := NULL]
+        incomeBand[Normalised != "S", Normalised := round(as.numeric(Normalised))]
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Normalised Population Value")
+        
+      }
+      else {
+        incomeBand[, c("Normalised") := NULL]
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value", "Version", "Year")
+        setcolorder(incomeBand, c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value"))
+      }
     }
     
     return(incomeBand)
@@ -832,14 +903,19 @@ server <- function(input, output, session) {
 
   # Table title
   output$incomeBandDataTitle = renderText({
-    
-    str_to_title(paste("Population Distribution By", input$populationType, income_sort(), "Bands", sep = " "))
+    if (input$y_type == "Income") {
+      title_start <- "Average Incomes"
+    }
+    else{
+      title_start <- "Population Distribution"
+    }
+    paste(title_start, "by", input$populationType, income_sort(), "Bands", sep = " ")
   })
 
   output$incomeBandDataSubTitle = renderText({
     
     if(length(input$chosen_file) > 1){
-      str_to_title(show_groups())
+      show_groups()
     }
     else {
     paste0("Tax Year 20", data_year(), " from ", data_version())

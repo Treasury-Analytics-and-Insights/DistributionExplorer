@@ -1,0 +1,18 @@
+Income Band,Population Type,Population Subgroup,Income Type,Population Value
+Below $0,Household,All households,Equivalised Disposable Income,4000
+$0-$10k,Household,All households,Equivalised Disposable Income,20000
+$10k-$20k,Household,All households,Equivalised Disposable Income,88000
+$20k-$30k,Household,All households,Equivalised Disposable Income,364000
+$30k-$40,Household,All households,Equivalised Disposable Income,294000
+$40k-$50k,Household,All households,Equivalised Disposable Income,253000
+$50k-$60k,Household,All households,Equivalised Disposable Income,207000
+$60k-$70k,Household,All households,Equivalised Disposable Income,170000
+$70k-$80k,Household,All households,Equivalised Disposable Income,116000
+$80k-$90k,Household,All households,Equivalised Disposable Income,80000
+$90k-$100k,Household,All households,Equivalised Disposable Income,45000
+$100k-$110k,Household,All households,Equivalised Disposable Income,32000
+$110k-$120k,Household,All households,Equivalised Disposable Income,22000
+$120k-$130k,Household,All households,Equivalised Disposable Income,15000
+$130k-$140k,Household,All households,Equivalised Disposable Income,13000
+$140k-$150k,Household,All households,Equivalised Disposable Income,9000
+Above $150k,Household,All households,Equivalised Disposable Income,43000
