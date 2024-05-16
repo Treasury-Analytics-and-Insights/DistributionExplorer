@@ -15,21 +15,46 @@ source('functions.R')
 #creates a list of available data
 data_versions <- data_versions_lists()
 
-# Sub groups for HH
-groupsHH = c(
+HH_pop_groups <- c(
+    "All households", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
+    "Single without children", "Couple with children", "Couple without children", 
+    "Multiple families with children", "Multiple families without children", 
+    "With children", "Without children", "Accommodation supplement", 
+    "Core benefits", "FTC", "IWTC", 
+    "MFTC", "NZ Super", "WEP", "WFF")
+
+Fam_pop_groups <- c(
+    "All families", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
+    "Single without children", "Couple with children", "Couple without children", 
+    "With children", "Without children", "Accommodation supplement", "Core benefits", 
+    "FTC", "IWTC", "MFTC", "NZ Super", "WEP", "WFF")
+
+I_pop_groups <- c(
+    "All individuals", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Accommodation supplement", "Core benefits", 
+    "NZ Super", "WEP")
+
+HH_IC_groups <- c(
   "All households", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
   "Single without children", "Couple with children", "Couple without children", 
   "Multiple families with children", "Multiple families without children", 
-  "With children", "Without children", "Accommodation supplement", 
-  "Core benefits", "FTC", "IWTC", 
-  "MFTC", "NZ Super", "WEP", "WFF")
+  "With children", "Without children")
 
-# Sub groups for families
-groupsFam = c(
+Fam_IC_groups <- c(
   "All families", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
   "Single without children", "Couple with children", "Couple without children", 
-  "With children", "Without children", "Accommodation supplement", "Core benefits", 
-  "FTC", "IWTC", "NZ Super", "WEP", "WFF")
+  "With children", "Without children")
+
+I_IC_groups <- c(
+  "All individuals", "Aged 0-15", 'Aged 16-64', "Aged 65+")
+
+HH_IC <- c(
+  "Housing Costs", "Wage/Salary Income", "Income Tax", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "NZ Super", "Accomodation Supplement", "WEP")
+
+Fam_IC <- c(
+  "Wage/Salary Income", "Income Tax", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "NZ Super", "Accomodation Supplement", "WEP")
+
+I_IC <- c(
+  "Wage/Salary Income", "Income Tax", "Core Benefits", "Self-Employment Income", "NZ Super", "Accomodation Supplement", "WEP")
 
 # Color blind palette for plotting
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
@@ -45,7 +70,7 @@ ui <- (navbarPage(
     fluidRow(
       column(1),
       column(10,
-             "This is a draft version of the Distribution Explorer that includes preliminary data."
+             "This is a draft version of the Distribution Explorer that includes preliminary and fictionalised data."
       ),
       column(1)
     ),
@@ -59,26 +84,44 @@ ui <- (navbarPage(
         radioGroupButtons(
           inputId = "y_type",
           label = NULL,
-          choices = c("Population", "Income"),
+          choices = c("Population", "Income", "Income Components"),
           selected = "Population",
           checkIcon = list(yes = icon("ok", 
                                       lib = "glyphicon")),
           justified = TRUE,
+          direction = "vertical",
           width = '100%'
         ),
         
+        
         #For selecting the tax year from a given HES/EFU combination
-        "Select Tax Year(s):",
-        pickerInput(
-          inputId ="chosen_file", 
-          label = NULL, 
-          choices = data_versions,
-          selected = data_versions[1],
-          multiple = TRUE,
-          options = list(size = 5, 
-                         `live-search` = TRUE,
-                         "max-options" = 8)
-          ),
+        conditionalPanel(
+          condition = "input.y_type != 'Income Components'",
+          "Select Tax Year(s):",
+          pickerInput(
+            inputId ="chosen_file", 
+            label = NULL, 
+            choices = data_versions,
+            selected = data_versions[[1]][1],
+            multiple = TRUE,
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8)
+          )),
+        
+        conditionalPanel(
+          condition = "input.y_type == 'Income Components'",
+          "Select Tax Year:",
+          pickerInput(
+            inputId ="chosen_file_components", 
+            label = NULL, 
+            choices = data_versions,
+            selected = data_versions[[1]][1],
+            multiple = FALSE,
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8)
+          )),
         
         # For selecting the population type, HH or Fam
         "Select Population Unit:",
@@ -86,8 +129,10 @@ ui <- (navbarPage(
           inputId = "populationType",
           label = NULL,
           choices = c(Households = 'Household',
-                      Families = "Family"),
+                      Families = "Family",
+                      Individuals = "Individual"),
           justified = TRUE,
+          direction = "vertical",
           checkIcon = list(yes = icon("ok", 
                                       lib = "glyphicon")),
           width = '100%'),
@@ -95,18 +140,18 @@ ui <- (navbarPage(
         
         # When households is selected
         conditionalPanel(
-          condition = "input.populationType == 'Household' && input.chosen_file.length == 1",
+          condition = "input.populationType == 'Household' && input.chosen_file.length < 2 && input.y_type != 'Income Components'",
           "Select Population Subgroup(s):",
           tooltip(
             bsicons::bs_icon("question-circle"),
-            "Household is in a subgroup when at least one individual in the household is: of selected age | in slected family type | receiving selected benefit",
+            "Household is in a subgroup when at least one individual in the household is: of selected age | in selected family type | receiving selected benefit",
             placement = "right"
           ),
           pickerInput(
             inputId = "show_groups_HH",
             label = NULL,
-            choices = groupsHH,
-            selected = groupsHH[1],
+            choices = HH_pop_groups,
+            selected = HH_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE),
             multiple = TRUE)
@@ -114,41 +159,62 @@ ui <- (navbarPage(
         
         # When family is selected
         conditionalPanel(
-          condition = "input.populationType == 'Family' && input.chosen_file.length == 1",
+          condition = "input.populationType == 'Family' && input.chosen_file.length < 2 && input.y_type != 'Income Components'",
           "Select Population Subgroup(s):",
           tooltip(
             bsicons::bs_icon("question-circle"),
-            "Family is in a subgroup when at least one individual in the family is: of selected age | in slected family type | receiving selected benefit",
+            "Family is in a subgroup when at least one individual in the family is: of selected age | in selected family type | receiving selected benefit",
             placement = "right"
           ),
           pickerInput(
             inputId = "show_groups_Fam",
             label = NULL,         
-            choices = groupsFam,
-            selected = groupsFam[1],
+            choices = Fam_pop_groups,
+            selected = Fam_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE,
                            "max-options" = 8),
             multiple = TRUE)
-
+          
+        ),
+        
+        # When individual is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Individual' && input.chosen_file.length < 2 && input.y_type != 'Income Components'",
+          "Select Population Subgroup(s):",
+          tooltip(
+            bsicons::bs_icon("question-circle"),
+            "Individual is in a subgroup when they are: of selected age | receiving selected benefit",
+            placement = "right"
           ),
+          pickerInput(
+            inputId = "show_groups_I",
+            label = NULL,         
+            choices = I_pop_groups,
+            selected = I_pop_groups[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8),
+            multiple = TRUE)
+          
+        ),
         
         #disable multiple selection when multiple years selected
         
         # When households is selected
         conditionalPanel(
-          condition = "input.populationType == 'Household' && input.chosen_file.length > 1",
+          condition = "input.populationType == 'Household' && (input.chosen_file.length > 1 && input.y_type != 'Income Components')",
           "Select Population Subgroup(s):",
           tooltip(
             bsicons::bs_icon("question-circle"),
-            "Household is in a subgroup when at least one individual in the household is: of selected age | in slected family type | receiving selected benefit",
+            "Household is in a subgroup when at least one individual in the household is: of selected age | in selected family type | receiving selected benefit",
             placement = "right"
           ),
           pickerInput(
             inputId = "show_groups_HH_multi",
             label = NULL,
-            choices = groupsHH,
-            selected = groupsHH[1],
+            choices = HH_pop_groups,
+            selected = HH_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE)),
           p(em("*When multiple years are selected only a single subgroup can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
@@ -156,95 +222,209 @@ ui <- (navbarPage(
         
         # When family is selected
         conditionalPanel(
-          condition = "input.populationType == 'Family' && input.chosen_file.length > 1",
+          condition = "input.populationType == 'Family' && (input.chosen_file.length > 1 && input.y_type != 'Income Components')",
           "Select Population Subgroup(s):",
           tooltip(
             bsicons::bs_icon("question-circle"),
-            "Family is in a subgroup when at least one individual in the family is: of selected age | in slected family type | receiving selected benefit",
+            "Family is in a subgroup when at least one individual in the family is: of selected age | in selected family type | receiving selected benefit",
             placement = "right"
           ),
           pickerInput(
             inputId = "show_groups_Fam_multi",
             label = NULL,         
-            choices = groupsFam,
-            selected = groupsFam[1],
+            choices = Fam_pop_groups,
+            selected = Fam_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE)),
           p(em("*When multiple years are selected only a single subgroup can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;"),
           
         ),
         
+        # When individual is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Individual' && (input.chosen_file.length > 1 && input.y_type != 'Income Components')",
+          "Select Population Subgroup(s):",
+          tooltip(
+            bsicons::bs_icon("question-circle"),
+            "Individual is in a subgroup when they are: of selected age | receiving selected benefit",
+            placement = "right"
+          ),
+          pickerInput(
+            inputId = "show_groups_I_multi",
+            label = NULL,         
+            choices = I_pop_groups,
+            selected = I_pop_groups[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE)),
+          p(em("*When multiple years are selected only a single subgroup can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;"),
+          
+        ),
+        
+        #show reduced subgroups in IC mode
+        
+        # When households is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Household' && input.y_type == 'Income Components'",
+          "Select Population Subgroup(s):",
+          tooltip(
+            bsicons::bs_icon("question-circle"),
+            "Household is in a subgroup when at least one individual in the household is: of selected age | in selected family type | receiving selected benefit",
+            placement = "right"
+          ),
+          pickerInput(
+            inputId = "show_groups_HH_IC",
+            label = NULL,
+            choices = HH_IC_groups,
+            selected = HH_IC_groups[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE),
+            multiple = FALSE)
+        ),
+        
+        # When family is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Family' && input.y_type == 'Income Components'",
+          "Select Population Subgroup(s):",
+          tooltip(
+            bsicons::bs_icon("question-circle"),
+            "Family is in a subgroup when at least one individual in the family is: of selected age | in selected family type | receiving selected benefit",
+            placement = "right"
+          ),
+          pickerInput(
+            inputId = "show_groups_Fam_IC",
+            label = NULL,         
+            choices = Fam_IC_groups,
+            selected = Fam_IC_groups[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8),
+            multiple = FALSE)
+          
+        ),
+        
+        # When individual is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Individual' && input.y_type == 'Income Components'",
+          "Select Population Subgroup(s):",
+          tooltip(
+            bsicons::bs_icon("question-circle"),
+            "Individual is in a subgroup when they are: of selected age | receiving selected benefit",
+            placement = "right"
+          ),
+          pickerInput(
+            inputId = "show_groups_I_IC",
+            label = NULL,         
+            choices = I_IC_groups,
+            selected = I_IC_groups[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8),
+            multiple = FALSE)
+          
+        ),
+        
+        #title of select income sort
+        conditionalPanel(
+          condition = "input.y_type != 'Income Components'",
+          "Select Income Type:"
+        ),
+        conditionalPanel(
+          condition = "input.y_type == 'Income Components'",
+          "Select Income Quantile/Band Type:"
+        ),
+        
+        
         # To select income sort
         conditionalPanel(
           condition = "input.populationType == 'Household'",
-          "Select Income Type:",
-        radioGroupButtons(
-          inputId = "incomeSortHH",
-          label = NULL,
-          choices = c(`Equivalised Disposable Income` = "Equivalised Disposable Income",
-                      `Taxable Income` = "Taxable Income",
-                      #`Total Income` = "Total Income",
-                      `Disposable Income` = "Disposable Income",
-                      `After Housing Cost Disposable Income` = "AHC Disposable Income"
-          ),
-          selected = "Equivalised Disposable Income",
-          justified = TRUE,
-          direction = 'vertical',
-          checkIcon = list(
-            yes = icon("ok", 
-                       lib = "glyphicon")),
-          width = '100%')
+          radioGroupButtons(
+            inputId = "incomeSortHH",
+            label = NULL,
+            choices = c(`Equivalised Disposable Income` = "Equivalised Disposable Income",
+                        `Taxable Income` = "Taxable Income",
+                        `Disposable Income` = "Disposable Income",
+                        `After Housing Cost Disposable Income` = "AHC Disposable Income"
+            ),
+            selected = "Equivalised Disposable Income",
+            justified = TRUE,
+            direction = 'vertical',
+            checkIcon = list(
+              yes = icon("ok", 
+                         lib = "glyphicon")),
+            width = '100%')
         ),
         
         conditionalPanel(
           condition = "input.populationType == 'Family'",
-        "Select Income Type:",
-        radioGroupButtons(
-          inputId = "incomeSortFam",
-          label = NULL,
-          choices = c(`Equivalised Disposable Income` = "Equivalised Disposable Income",
-                      `Taxable Income` = "Taxable Income",
-                      #`Total Income` = "Total Income",
-                      `Disposable Income` = "Disposable Income"
-          ),
-          selected = "Equivalised Disposable Income",
-          justified = TRUE,
-          direction = 'vertical',
-          checkIcon = list(
-            yes = icon("ok", 
-                       lib = "glyphicon")),
-          width = '100%')
+          radioGroupButtons(
+            inputId = "incomeSortFam",
+            label = NULL,
+            choices = c(`Equivalised Disposable Income` = "Equivalised Disposable Income",
+                        `Taxable Income` = "Taxable Income",
+                        `Disposable Income` = "Disposable Income"
+            ),
+            selected = "Equivalised Disposable Income",
+            justified = TRUE,
+            direction = 'vertical',
+            checkIcon = list(
+              yes = icon("ok", 
+                         lib = "glyphicon")),
+            width = '100%')
+        ),
+        
+        conditionalPanel(
+          condition = "input.populationType == 'Individual'",
+          radioGroupButtons(
+            inputId = "incomeSortI",
+            label = NULL,
+            choices = c(`Taxable Income` = "Taxable Income",
+                        `Disposable Income` = "Disposable Income"
+            ),
+            selected = "Taxable Income",
+            justified = TRUE,
+            direction = 'vertical',
+            checkIcon = list(
+              yes = icon("ok", 
+                         lib = "glyphicon")),
+            width = '100%')
         ),
         
         # To select plot type
-        "Select Plot Type:",
-        radioGroupButtons(
-          inputId = "plotType",
-          label = NULL,
-          choices = c(Histogram = "Histogram",
-                      `Line Plot` = "linePlot",
-                      `Smooth Line Plot` = "smoothPlot"),
-          justified = TRUE,
-          direction = 'vertical',
-          checkIcon = list(yes = icon("ok", 
-                                      lib = "glyphicon")),
-          width = '100%'),
-        
-        # To select pair plot
-        "Display As Pair Plot:",
-        tooltip(
-          bsicons::bs_icon("question-circle"),
-          "Useful when multiple sub groups are selected",
-          placement = "right"
+        conditionalPanel(
+          condition = "input.y_type != 'Income Components'", 
+          "Select Plot Type:",
+          radioGroupButtons(
+            inputId = "plotType",
+            label = NULL,
+            choices = c(Histogram = "Histogram",
+                        `Line Plot` = "linePlot",
+                        `Smooth Line Plot` = "smoothPlot"),
+            justified = TRUE,
+            direction = 'vertical',
+            checkIcon = list(yes = icon("ok", 
+                                        lib = "glyphicon")),
+            width = '100%'),
+          p(textOutput("suppressedCheck"), style = "margin-top: -10px; margin-bottom: 7px;")
         ),
-        materialSwitch(
-          inputId = "pairPlot",
-          label = NULL, 
-          value = FALSE,
-          status = "primary"),
         
         conditionalPanel(
-          condition = "input.chosen_file.length > 1 && input.y_type == 'Population'",
+          condition = "input.y_type != 'Income Components'",
+          # To select pair plot
+          "Display As Pair Plot:",
+          tooltip(
+            bsicons::bs_icon("question-circle"),
+            "Useful when multiple sub groups are selected",
+            placement = "right"
+          ),
+          materialSwitch(
+            inputId = "pairPlot",
+            label = NULL, 
+            value = FALSE,
+            status = "primary")
+        ),
+        
+        conditionalPanel(
+          condition = "(input.chosen_file.length > 1 && input.y_type != 'Income Components') && input.y_type == 'Population'",
           textOutput("normalised_text", inline = TRUE),
           tooltip(
             bsicons::bs_icon("question-circle"),
@@ -256,11 +436,60 @@ ui <- (navbarPage(
             label = NULL, 
             value = FALSE,
             status = "primary")
-        )
+        ),
+        
+        # When households is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Household' && input.y_type == 'Income Components'",
+          "Select Income Component(s):",
+          pickerInput(
+            inputId = "inc_comp_HH",
+            label = NULL,
+            choices = HH_IC,
+            selected = HH_IC[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE),
+            multiple = TRUE)
+        ),
+        
+        # When family is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Family' && input.y_type == 'Income Components'",
+          "Select Income Component(s):",
+          pickerInput(
+            inputId = "inc_comp_Fam",
+            label = NULL,         
+            choices = Fam_IC,
+            selected = Fam_IC[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8),
+            multiple = TRUE)
+          
+        ),
+        
+        #select income components
+        
+        # When individual is selected
+        conditionalPanel(
+          condition = "input.populationType == 'Individual' && input.y_type == 'Income Components'",
+          "Select Income Component(s):",
+          pickerInput(
+            inputId = "inc_comp_I",
+            label = NULL,         
+            choices = I_IC,
+            selected = I_IC[1],
+            options = list(size = 5, 
+                           `live-search` = TRUE,
+                           "max-options" = 8),
+            multiple = TRUE)
+          
+        ),
       ),
       
       mainPanel(
         tabsetPanel(
+          id = "tabChange",
           type = "pills",
           tabPanel(
             "Plots",
@@ -280,28 +509,39 @@ ui <- (navbarPage(
           ),
           tabPanel(
             "Tables",
-            # Ventile table
-            hr(),
-            h6(strong(textOutput("ventileDataTitle")), align = "center"),
-            h6(textOutput("ventileDataSubTitle"), align = "center"),
-            hr(),
-            dataTableOutput("ventileTable"),
-            br(),
-            downloadButton(outputId = "downloadData1",
-                           label = "Download Data"),
-            br(),
-            br(),
-
-            # Income Band table
-            hr(),
-            h6(strong(textOutput("incomeBandDataTitle")), align = "center"),
-            h6(textOutput("incomeBandDataSubTitle"), align = "center"),
-            hr(),
-            dataTableOutput("incomeBandTable"),
-            br(),
-            downloadButton(outputId = "downloadData2",
-                           label = "Download Data"),
-            hr()
+            conditionalPanel(
+              condition = "input.y_type != 'Income Components'",
+              # Ventile table
+              hr(),
+              h6(strong(textOutput("ventileDataTitle")), align = "center"),
+              h6(textOutput("ventileDataSubTitle"), align = "center"),
+              hr(),
+              DT::dataTableOutput("ventileTable"),
+              br(),
+  
+              # Income Band table
+              hr(),
+              h6(strong(textOutput("incomeBandDataTitle")), align = "center"),
+              h6(textOutput("incomeBandDataSubTitle"), align = "center"),
+              hr(),
+              DT::dataTableOutput("incomeBandTable"),
+              br(),
+              hr(),
+              fluidRow(
+                column(12,
+                   actionButton("downloadData",
+                                "Download Tables", )
+                  ),
+                align = "center"
+              ),
+              hr()
+            ),
+            conditionalPanel(
+              condition = "input.y_type == 'Income Components'",
+              hr(),
+              p("Tables not available in Income Components mode."),
+              hr()
+            )
           )
         )
       )
@@ -315,25 +555,28 @@ ui <- (navbarPage(
            column(1),
            column(10,
            h5(strong("Overview")),
-           p("The income distribution explorer is a tool which can be used to understand income distribution for households and families in New Zealand."),
-           p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions for a subgroup over time or with other subgroups. The population can be sorted into subgroups based on the age of, household/family structure of, or benefit recieved by individuals in the household or family."),
+           p("The income distribution explorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
+           p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions between subgroups or over time. The population can be sorted into subgroups based on factors including age, family strucutre and relationship status, as well as government transfer status."),
            h5(strong("Instructions")),
-           p(strong(" 1)"), "Maximise window to full screen."),
-           p(strong(" 2)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year."),
-           p(strong(" 3)"), "Select Population Unit: either Households or Families."),
-           p(strong(" 4)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years are selected, then only a single subgroup can be selected. The all households/families captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
-           p(strong(" 5)"), "Select the Income type: either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected."),
-           p(strong(" 6)"), "Select Plot Type: either Histogram, Line Plot or Smooth Line Plot."),
-           p(strong(" 7)"), "Choose if you would like plots displayed as a Pair Plot. This is useful when multiple subgroups are selected."),
-           p(strong(" 8)"), "If looking at multiple years, choose if you would like to normalise population values by the lowest population year (as determined by household population)."),
-           
+           p(strong(" 1)"), "Maximise the browser window to full screen."),
+           p(strong(" 2)"), "Select Distribution Type: Choose whether you would like to investigate population, income, or income component distributions."),
+           p(strong(" 3)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year. Only a single year can be investigated in income components mode."),
+           p(strong(" 4)"), "Select Population Unit: either Households, Families, or Individuals."),
+           p(strong(" 5)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years or income components mode are chosen, then only a single subgroup can be selected. The all households/families/individuals option captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
+           p(strong(" 6)"), "Select the Income type: either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Income option."),
+           p(strong(" 7)"), "Select Income Components: if using income components mode, select which components of income/expenditure you would like to be displayed. Please note that some components may overlap with other components (e.g. FTC is a component of WFF, and thus chosing WFF and FTC at the same time will give a misleading impression of total income). See Definitions for more information about each income component."),
+           p(strong(" 8)"), "Select Plot Type: either Histogram, Line Plot or Smooth Line Plot. The Smooth Line Plot is not compatible with suppressed data points. Only Histograms are available in income components mode."),
+           p(strong(" 9)"), "Choose if you would like plots displayed as a Pair Plot. This is useful when multiple subgroups or multiple year are selected. This mode is not available in income components mode."),
+           p(strong("10)"), "If looking at population distributions over multiple years, choose if you would like to normalise population values by the lowest population year (as determined by household population). This can make comparing population distributions across years more straightforward."),
+
            p(strong("Income Distribution Plots")),
-           p("This tab displays the income distribution for the subgroups and income measure selected by ventiles and fixed income bands. See Definitions for more detail on the income boundaries used in this tool."),
-           p("To download a plot, hover the mouse over the plot which will cause several icons to appear in the top right corner of the plot. Click on the camera icon to download a plot. Note that in pair plot mode, the x-axis title is located outside of the plot and thus will not be downloaded."),
+           p("This tab displays the desired distribution both over income ventiles (upper panel) and over income bands (lower panel). See Definitions for more detail on the income boundaries used in this tool."),
+           p("To download a plot, hover the mouse over the plot which will cause an icon to appear in the top right corner of the plot. Click on the camera icon to download a plot. Note that in pair plot mode, the x-axis title is located outside of the plot and thus will not be downloaded."),
            
            p(strong("Income Distribution Tables")),
-           p("This tab displays the data which is used to create the ventile and income band plots. A Download Data button is available to save the data as a CSV file."),
-           p("Note if there is an 'S' or a blank space in the tables, this means the population was too small to be released from the IDI and has been suppressed."),
+           p("This tab displays the data which is used to create the ventile and income band plots. A Download Table button is available to save the data in both tables as a CSV file."),
+           p("Note that tables are not available for income components mode."),
+           p("Note if there is an 'S' in a table or graph, this means the underlying population on which the data point is calculated is too small to be released from the IDI. This value has thus been suppressed."),
            h5(strong("Disclaimer")),
            p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
              tags$a(
@@ -363,9 +606,11 @@ ui <- (navbarPage(
            
            h5(strong("Population subgroups")),
            
+           p("Not all of the population subgroups listed are available for every population unit."),
+           p(" "),
            p("In the population subgroups below, a child is defined using the Working for Family definition of a ‘dependent child’."),
            p(" "),
-           p("For a selected population unit, i.e. household or family,"),
+           p("For a selected population unit, i.e. household, family, or individual,"),
            
            tags$ul(
              tags$li(strong("Aged 0-15"),"indicates there is a least one individual aged 0-15 in the ‘population unit’"),
@@ -396,13 +641,84 @@ ui <- (navbarPage(
            
            br(),
            
+           h5(strong("Income components")),
+           
+           p("Not all of the income components listed are available for every population unit. For example, housing costs are only avaialble over households, and WFF tax credits are not available over individuals."),
+           
+           p("For a selected population unit, "),
+           
+           tags$ul(
+             tags$li(strong("Housing Costs"),"indicates the average total of housing costs paid by the 'population unit'"),
+             tags$li(strong("Wage/Salary Income"),"indicates the average total of wage and salary income that is earned by the ‘population unit’"),
+             tags$li(strong("Income Tax"),"indicates the average total of income tax that is paid by the ‘population unit’"),
+             tags$li(strong("Core Benefits"),"indicates the average total of core benefits (e.g. JSS, SLP, and SPS) received by the ‘population unit’"),
+             tags$li(strong("Self-Employement Income"),"indicates the average total of self-employment income that is earned by the ‘population unit’"),
+             tags$li(strong("WFF"),"indicates the average total of Working For Families tax credits received by the ‘population unit’. Please note that this includes the totals of FTC, MFTC, IWTC, and Best Start which are also listed seperately as income components."),
+             tags$li(strong("FTC"),"indicates the average total of Family Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
+             tags$li(strong("MFTC"),"indicates the average total of Minimum Family Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
+             tags$li(strong("IWTC"),"indicates the average total of In-Work Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
+             tags$li(strong("Best Start"),"indicates the average total of Best Start Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
+             tags$li(strong("NZ Super"),"indicates the average total of New Zealand Superannuation that is recieced by the ‘population unit’"),
+             tags$li(strong("Accommodation Supplement"),"indicates the average total of Accommodation Supplement that is received by the ‘population unit’"),
+             tags$li(strong("WEP"),"indicates the average total of Winter Energy Payment that is received by the ‘population unit’")),
+           
+           br(),
+           
            h5(strong("Other")),
-           p(strong("Fixed income bands: "), "household / families are assigned an income band based on the income selected, e.g. disposable income. Each income band is of equal width (except for the  first and last income band) and has a different population size."),
-           p(strong("Ventiles: "), "the overall household (or family) population is separated into 20 equal groups based on the income selected, e.g. disposable income. The corresponding income bands (not currently provided) will be of different sizes with thinner income bands where the population is larger and wider income bands where the population is lower")
+           p(strong("Ventiles: "), "the overall population is separated into 20 equal groups based on the income selected, e.g. disposable income. The corresponding income bands (not currently provided) will be of different sizes with thinner income bands where the population is larger and wider income bands where the population is lower."),
+           p(strong("Fixed income bands: "), "household, families, and individuals are assigned an income band based on the income selected, e.g. disposable income. Each income band is of equal width (except for the  first and last income band) and has a different population size.")
              ),
              column(1)
            )
-  )
+  ),
+  tags$script(HTML("
+    function downloadCSV(csv, filename) {
+      var csvFile;
+      var downloadLink;
+      
+      // CSV file
+      csvFile = new Blob([csv], {type: 'text/csv'});
+      
+      // Download link
+      downloadLink = document.createElement('a');
+      
+      // File name
+      downloadLink.download = filename;
+      
+      // Create a link to the file
+      downloadLink.href = window.URL.createObjectURL(csvFile);
+      
+      // Hide download link
+      downloadLink.style.display = 'none';
+      
+      // Add the link to DOM
+      document.body.appendChild(downloadLink);
+      
+      // Click download link
+      downloadLink.click();
+    }
+
+    function exportTableToCSV(filename) {
+      var csv = [];
+      var rows = document.querySelectorAll('table tr');
+      
+      for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        for (var j = 0; j < cols.length; j++) 
+          row.push(cols[j].innerText);
+        
+        csv.push(row.join(','));
+      }
+
+      // Download CSV
+      downloadCSV(csv.join('\\n'), filename);
+    }
+    
+    document.getElementById('downloadData').onclick = function () {
+      exportTableToCSV('Distribution-Explorer-User-Tables' + new Date().toISOString().slice(0,10) + '.csv');
+    };
+  "))
   )
 )
 
@@ -411,13 +727,53 @@ ui <- (navbarPage(
 server <- function(input, output, session) {
   
   #stops normalised selection from preventing switch to income mode
-  observeEvent(input$y_type == "Income", {
+  observeEvent(input$y_type %in% c("Income", "Income Components"), {
     updateMaterialSwitch(session, "normalised", value = FALSE)
+  })
+  
+  showModal(modalDialog(
+    p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) 
+          which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
+      a("https://www.stats.govt.nz/integrated-data/", href = "https://www.stats.govt.nz/integrated-data/"), 
+      "."),
+    p("The results are based in part on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for statistical purposes. 
+          Any discussion of data limitations or weaknesses is in the context of using the IDI for statistical purposes, 
+            and is not related to the data’s ability to support Inland Revenue’s core operational requirements."),
+    title = "Disclaimer",
+    size = "l",
+    footer = actionButton("closeModal", "Acknowledge")
+    
+  ))
+  
+  observeEvent(input$closeModal, {
+    removeModal()
+  })
+  
+  #refreshes data so that all plots/graphs appear without input from user
+  observeEvent(input$tabChange, {
+    y_type <- input$y_type
+    if (y_type != "Population") {
+      updateRadioGroupButtons(session, "y_type", selected = "Population")
+      updateRadioGroupButtons(session, "y_type", selected = y_type)
+    }
+    else {
+      updateRadioGroupButtons(session, "y_type", selected = "Income")
+      updateRadioGroupButtons(session, "y_type", selected = "Population")
+    }
+  })
+  
+  chosen_file = reactive({
+    if (input$y_type == "Income Components") {
+      return(input$chosen_file_components)
+    }
+    else {
+      return(input$chosen_file)
+    }
   })
 
   data_year = reactive({
     year_list <- NULL
-    for (file in input$chosen_file) {
+    for (file in chosen_file()) {
       year_list <- c(year_list, get_year(file))
     }
     return(year_list)
@@ -426,7 +782,7 @@ server <- function(input, output, session) {
 
   data_version = reactive({
     version_list <- NULL
-    for (file in input$chosen_file) {
+    for (file in chosen_file()) {
       version_list <- c(version_list, paste0(get_hes(file), ", ", get_efu(file)))
     }
     return(version_list)
@@ -434,7 +790,7 @@ server <- function(input, output, session) {
   
   data_version_full = reactive({
     full_version_list <- NULL
-    for (file in input$chosen_file) {
+    for (file in chosen_file()) {
       full_version_list <- c(full_version_list, paste0("20", get_year(file), " (", get_hes(file), ", ", get_efu(file), ")"))
     }
     return(full_version_list)
@@ -444,33 +800,70 @@ server <- function(input, output, session) {
     if (input$populationType == "Household") {
       return(input$incomeSortHH)
     }
-    else {
+    else if (input$populationType == "Family") {
       return(input$incomeSortFam)
+    }
+    else {
+      return(input$incomeSortI)
     }
   })
   
-  show_groups = reactive({
+  inc_comp = reactive({
     if (input$populationType == "Household") {
-      if(length(input$chosen_file) > 1) {
-        return(input$show_groups_HH_multi)
+      return(input$inc_comp_HH)
+    }
+    else if (input$populationType == "Family") {
+      return(input$inc_comp_Fam)
+    }
+    else {
+      return(input$inc_comp_I)
+    }
+  })
+  
+  
+  show_groups = reactive({
+    if (input$y_type != 'Income Components') {
+      if (input$populationType == "Household") {
+        if(length(chosen_file()) > 1) {
+          return(input$show_groups_HH_multi)
+        }
+        else {
+          return(input$show_groups_HH)
+        }
+      }
+      else if (input$populationType == "Family") {
+        if(length(chosen_file()) > 1) {
+          return(input$show_groups_Fam_multi)
+        }
+        else {
+          return(input$show_groups_Fam)
+        }
       }
       else {
-        return(input$show_groups_HH)
+        if(length(chosen_file()) > 1) {
+          return(input$show_groups_I_multi)
+        }
+        else {
+          return(input$show_groups_I)
+        }
       }
     }
     else {
-      if(length(input$chosen_file) > 1) {
-        return(input$show_groups_Fam_multi)
+      if (input$populationType == "Household") {
+        return(input$show_groups_HH_IC)
+      }
+      else if (input$populationType == "Family") {
+        return(input$show_groups_Fam_IC)
       }
       else {
-        return(input$show_groups_Fam)
+          return(input$show_groups_I_IC)
       }
     }
-  })  
+  }) 
   
   dataUpload = reactive({
-    dt <- NULL
-    for (file in input$chosen_file) {
+    dt <- data.table()
+    for (file in chosen_file()) {
       dt_year = as.data.table(read.csv(paste0("data/", file)))
       dt_year[Description=="Aged 0-16", Description:="Aged 0-15"]
       dt_year[Description=="Super annuation", Description:="NZ Super"]
@@ -483,12 +876,16 @@ server <- function(input, output, session) {
       dt_year[, data_version := paste0(get_hes(file), ", ", get_efu(file))]
       dt_year[, year := paste0("20", get_year(file))]
       dt_year[, file := paste0("20", get_year(file), " (", get_hes(file), ", ", get_efu(file), ")")]
-      if (is.null(dt)) {
-        dt <- dt_year
+      
+      #allow back-compatibility with input data sets that do not specify Income Components, discard unwanted incomes for non-income component modes
+      if (input$y_type != "Income Components") {
+        if (!("Value.Type" %in% colnames(dt_year))) {
+          dt_year[,Value.Type := Income.Measure]
+        } 
+        dt_year <- dt_year[Income.Measure == Value.Type]
+        dt_year[, Value.Type := NULL]
       }
-      else {
-        dt <- rbindlist((list(dt, dt_year)))
-      }
+      dt <- rbind(dt, dt_year)
     }
     dt <- norm_pop(dt)[[2]]
     return(dt)
@@ -507,20 +904,30 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    if(length(input$chosen_file) > 8){
+    if(length(chosen_file()) > 8){
       stop("Maximum selection is 8 years")
       return(NULL)
     }
     
-    if(length(input$chosen_file) > 1){
+    if(length(inc_comp()) > 8){
+      stop("Maximum selection is 8 income components")
+      return(NULL)
+    }
+    
+    if(length(chosen_file()) > 1){
       fill <- "file"
       label <- "Years"
       subtitle <- show_groups()
     }
-    else {
+    else if (input$y_type != "Income Components") {
       fill <- "Description"
       label <- "Subgroups"
       subtitle <- paste0("Tax Year 20", data_year(), " from ", data_version())
+    }
+    else {
+      fill <- "Value.Type"
+      label <- "Income Components"
+      subtitle <- paste0(paste0("Tax Year 20", data_year(), " from ", data_version()))
     }
     
     if(input$pairPlot) {
@@ -531,38 +938,60 @@ server <- function(input, output, session) {
     }
     
     dataset= copy(dataUpload())
-    
+
+    dataset[, Suppressed := ""]
     if(input$normalised) {
       pop_type <- "Normalised"
-      dataset = dataset[Normalised == "S", Normalised := 0L]
-      dataset = dataset[,Normalised := as.numeric(Normalised)]
+      dataset[Normalised == "S", Suppressed := "S"]
+      dataset[Normalised == "S", Normalised := 0L]
+      dataset[,Normalised := as.numeric(Normalised)]
       y_label <- "Normalised Population"
       title_start <- "Population Distribution"
     }
     else if (input$y_type == "Population") {
       pop_type <- "Population"
-      dataset = dataset[Population == "S", Population := 0L]
-      dataset = dataset[,Population := as.numeric(Population)]
+      dataset[Population == "S", Suppressed := "S"]
+      dataset[Population == "S", Population := 0L]
+      dataset[,Population := as.numeric(Population)]
       y_label <- "Population"
       title_start <- "Population Distribution"
     }
-    else {
+    else if (input$y_type == "Income") {
       pop_type <- "Value"
-      dataset = dataset[Value == "S", Value := 0L]
-      dataset = dataset[,Value := as.numeric(Value)]
+      dataset[Value == "S", Suppressed := "S"]
+      dataset[Value == "S", Value := 0L]
+      dataset[,Value := as.numeric(Value)]
       y_label <- paste0("Average ", input$populationType, " \n", income_sort())
       title_start <- "Average Incomes"
     }
+    else {
+      pop_type <- "Value"
+      dataset[Value == "S", Suppressed := "S"]
+      dataset[Value == "S", Value := 0L]
+      dataset[,Value := as.numeric(Value)]
+      y_label <- paste0("Average Amount")
+      title_start <- "Average Income Components"
+    }
     
-    ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
-                       & Income.Measure == income_sort()]
+    nudge_distance_y <- pmax(0.1, dataset[Description %in% show_groups(), max(get(pop_type))] / 100)
 
-    p = ggplot(ventiles, aes(x = as.numeric(Income.Group), y = get(pop_type), fill = get(fill))) +
+    if (input$y_type != "Income Components") {
+      ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
+                         & Income.Measure == income_sort()]
+    }
+    else {
+      ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
+                         & Income.Measure == income_sort() & Value.Type %in% inc_comp()]
+      ventiles[Value.Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
+    }
+
+    p = ggplot(ventiles, aes(x = as.numeric(Income.Group), y = get(pop_type), label = Suppressed, fill = get(fill))) +
       labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Ventiles", "\n", subtitle),
-           x = x_label, y = y_label) +
+           x = x_label, y = y_label) + 
       scale_x_continuous(breaks = seq(1:20)) +
-      scale_y_continuous(labels = comma,limits = c(0, NA),
+      scale_y_continuous(labels = comma,
                          expand = expansion(mult = c(0, 0.05))) +  # Includes 0 in y axis and has the top of graph 5% above the max value
+      geom_hline(yintercept = 0) + 
       theme_classic() +
       theme(plot.title = element_text(hjust = 0.5, size = 10),
             axis.text.x = element_text(size = 8),
@@ -580,31 +1009,42 @@ server <- function(input, output, session) {
                                              axis.text.y = element_text(size = 5))
       if(input$plotType == "Histogram"){
         p = p + geom_col(position = "dodge", color = "white", fill = "#00718f") 
+        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f", position = position_dodge(width = 0.9)) + theme(legend.position = "none")
 
       }
       else if(input$plotType == "linePlot") {
         p = p + geom_line(group = 1, color = "#00718f") + theme(legend.position = "none")
         p = p + geom_point(group = 1, color = "#00718f", fill = "#00718f")
+        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f", position = position_dodge(width = 0.9))
 
       }
       else if(input$plotType == "smoothPlot") {
         p = p + geom_smooth(colour = "#00718f", aes(group = get(fill)), se = FALSE, span = 0.5) + theme(legend.position = "none")
 
       }
-    } else {
+    } else if (input$y_type != "Income Components") {
       if(input$plotType == "Histogram"){
         p = p + geom_col(position = "dodge", colour = "white")
         p = p + scale_fill_manual(values = cbPalette)
+        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)), position = position_dodge(width = 0.9))
+        p = p + scale_color_manual(values = cbPalette) + guides(color = "none")
       }
       else if(input$plotType == "linePlot") {
         p = p + geom_line(aes(color = get(fill)), group = 1)
         p = p + geom_point(aes(color = get(fill)), group = 1)
-        p = p + scale_colour_manual(values = cbPalette)
+        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)), position = position_dodge(width = 0))
+        p = p + scale_colour_manual(values = cbPalette) + guides(color = "none")
       }
       else if(input$plotType == "smoothPlot") {
         p = p + geom_smooth(aes(color = get(fill), group = get(fill)), se = FALSE, span = 0.5)
         p = p + scale_colour_manual(values = cbPalette)
       }
+    }
+    else {
+      p = p + geom_col(colour = "white")
+      p = p + scale_fill_manual(values = cbPalette)
+      p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)))
+      p = p + scale_color_manual(values = cbPalette) + guides(color = "none")
     }
 
     p = p + labs(fill = label, color = NULL)
@@ -626,14 +1066,23 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    if(length(input$chosen_file) > 1){
+    if(length(inc_comp()) > 8){
+      return(NULL)
+    }
+    
+    if(length(chosen_file()) > 1){
       fill <- "file"
       label <- "Years"
       subtitle <- show_groups()
     }
-    else {
+    else if (input$y_type != "Income Components"){
       fill <- "Description"
       label <- "Subgroups"
+      subtitle <- paste0("Tax Year 20", data_year(), " from ", data_version())
+    }
+    else {
+      fill <- "Value.Type"
+      label <- "Income Components"
       subtitle <- paste0("Tax Year 20", data_year(), " from ", data_version())
     }
     
@@ -646,30 +1095,53 @@ server <- function(input, output, session) {
     
     dataset= copy(dataUpload())
     
+
+    dataset[, Suppressed := ""]
+    
     if(input$normalised) {
       pop_type <- "Normalised"
-      dataset = dataset[Normalised == "S", Normalised := 0L]
-      dataset = dataset[,Normalised := as.numeric(Normalised)]
+      dataset[Normalised == "S", Suppressed := "S"]
+      dataset[Normalised == "S", Normalised := 0L]
+      dataset[,Normalised := as.numeric(Normalised)]
       y_label <- "Normalised Population"
       title_start <- "Population Distribution"
     }
     else if (input$y_type == "Population") {
       pop_type <- "Population"
-      dataset = dataset[Population == "S", Population := 0L]
-      dataset = dataset[,Population := as.numeric(Population)]
+      dataset[Population == "S", Suppressed := "S"]
+      dataset[Population == "S", Population := 0L]
+      dataset[,Population := as.numeric(Population)]
       y_label <- "Population"
       title_start <- "Population Distribution"
     }
-    else {
+    else if (input$y_type == "Income") {
       pop_type <- "Value"
-      dataset = dataset[Value == "S", Value := 0L]
-      dataset = dataset[,Value := as.numeric(Value)]
+      dataset[Value == "S", Suppressed := "S"]
+      dataset[Value == "S", Value := 0L]
+      dataset[,Value := as.numeric(Value)]
       y_label <- paste0("Average ", input$populationType, " \n", income_sort())
       title_start <- "Average Incomes"
     }
-
-    incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
-                         & Income.Measure == income_sort()]
+    else {
+      pop_type <- "Value"
+      dataset[Value == "S", Suppressed := "S"]
+      dataset[Value == "S", Value := 0L]
+      dataset[,Value := as.numeric(Value)]
+      y_label <- paste0("Average Amoount")
+      title_start <- "Average Income Components"
+    }
+    
+    nudge_distance_y <- pmax(0.1, dataset[Description %in% show_groups(), max(get(pop_type))] / 50)
+    
+    if (input$y_type != "Income Components") {
+      incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
+                           & Income.Measure == income_sort()]
+    }
+    else {
+      incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
+                           & Income.Measure == income_sort() & Value.Type %in% inc_comp()]
+      incomeBand[Value.Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
+    }
 
     incomeBand[, Band := as.factor(Income.Group)]
 
@@ -686,11 +1158,12 @@ server <- function(input, output, session) {
                                    "$240k-$260k", "$260k-$280k", "$280k-$300k", "Above $300k"))
     }
 
-    p = ggplot(incomeBand, aes(x = Band, y=get(pop_type), fill=get(fill))) +
+    p = ggplot(incomeBand, aes(x = Band, y=get(pop_type), label = Suppressed, fill=get(fill))) +
       labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Bands", "\n", subtitle),
-           x = x_label, y = y_label) +
-      scale_y_continuous(labels = comma, limits = c(0, NA),
+           x = x_label, y = y_label) + 
+      scale_y_continuous(labels = comma, 
                          expand = expansion(mult = c(0, 0.05))) +  # Includes 0 in y axis and has the top of graph 5% above the max value
+      geom_hline(yintercept = 0) + 
       theme_classic() +
       theme(plot.title = element_text(hjust = 0.5, size = 10),
             axis.text.x = element_text(angle = 45, vjust = 0.5, size = 8),
@@ -709,11 +1182,13 @@ server <- function(input, output, session) {
 
       if(input$plotType == "Histogram"){
         p = p + geom_col(position = "dodge", color = "white", fill = "#00718f")
+        p = p + geom_text(aes(x = Band, y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f",position = position_dodge(width = 0.9)) + theme(legend.position = "none")
 
       }
       else if(input$plotType == "linePlot") {
         p = p + geom_line(group = 1, color = "#00718f") + theme(legend.position = "none")
         p = p + geom_point(group = 1, color = "#00718f", fill = "#00718f")
+        p = p + geom_text(aes(x = Band, y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f",position = position_dodge(width = 0.9))
 
       }
       else if(input$plotType == "smoothPlot") {
@@ -722,20 +1197,28 @@ server <- function(input, output, session) {
       }
       
       
-    } else {
+    } else if (input$y_type != "Income Components") {
       if(input$plotType == "Histogram"){
         p = p + geom_col(position = "dodge", colour = "white")
         p = p + scale_fill_manual(values = cbPalette)
+        p = p + geom_text(aes(x = Band, y = get(pop_type) + nudge_distance_y, group = get(fill), color = get(fill)),position = position_dodge(width = 0.9))
+        p = p + scale_color_manual(values = cbPalette) + guides(color = "none")
       }
       else if(input$plotType == "linePlot") {
         p = p + geom_line(aes(color = get(fill)), group = 1)
         p = p + geom_point(aes(color = get(fill)), group = 1)
-        p = p + scale_colour_manual(values = cbPalette)
+        p = p + geom_text(aes(x = Band, y = get(pop_type) + nudge_distance_y, group = get(fill), color = get(fill)),position = position_dodge(width = 0))
+        p = p + scale_colour_manual(values = cbPalette) + guides(color = "none")
       }
       else if(input$plotType == "smoothPlot") {
         p = p + geom_smooth(aes(color = get(fill), group = get(fill)), se = FALSE, span = 0.5)
         p = p + scale_colour_manual(values = cbPalette)
       }
+    } else {
+      p = p + geom_col(colour = "white")
+      p = p + scale_fill_manual(values = cbPalette)
+      p = p + geom_text(aes(x = Band, y = get(pop_type) + nudge_distance_y, group = get(fill), color = get(fill)))
+      p = p + scale_color_manual(values = cbPalette) + guides(color = "none")
     }
 
     p = p + labs(fill = label, color = NULL)
@@ -744,6 +1227,38 @@ server <- function(input, output, session) {
       ggplotly() %>% config(modeBarButtons = list(list("toImage")))
 
   })
+  ###############################
+  #Check for suppressed output
+  ###############################
+  
+  output$suppressedCheck = reactive ({
+    dataset = copy(dataUpload())
+    
+    
+    ds = dataset[Population.Type == input$populationType & Description %in% show_groups() & Income.Measure == income_sort()]
+    if ("S" %in% ds[, Value]) {
+      updateRadioGroupButtons(session, 
+                              "plotType", 
+                              choices = c(Histogram = "Histogram",
+                                          `Line Plot` = "linePlot",
+                                          `Smooth Line Plot` = "smoothPlot"), 
+                              disabledChoices = c(`Smooth Line Plot` = "smoothPlot"),
+                              checkIcon = list(yes = icon("ok", 
+                                                          lib = "glyphicon")))
+      return("*Smooth line plot cannot be used with suppressed values")
+    }
+    else {
+      updateRadioGroupButtons(session, 
+                              "plotType", 
+                              choices = c(Histogram = "Histogram",
+                                          `Line Plot` = "linePlot",
+                                          `Smooth Line Plot` = "smoothPlot"), 
+                              disabledChoices = NULL,
+                              checkIcon = list(yes = icon("ok", 
+                                                          lib = "glyphicon")))
+      return("")
+    }
+  }) 
 
   ###############################
   #Ventile table output
@@ -754,6 +1269,7 @@ server <- function(input, output, session) {
     
 
     dataset = copy(dataUpload())
+    
 
     ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
                        & Income.Measure == income_sort() & file %in% data_version_full()]
@@ -762,7 +1278,7 @@ server <- function(input, output, session) {
     
     if (input$y_type == "Income") {
       ventiles[, c("Population", "Normalised") := NULL]
-      if (length(input$chosen_file) == 1) {
+      if (length(chosen_file()) == 1) {
         ventiles[, c("data_version", "year") := NULL]
         colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()))
       }
@@ -773,7 +1289,7 @@ server <- function(input, output, session) {
     }
     else {
       ventiles[, c("Value") := NULL]
-      if (length(input$chosen_file) == 1) {
+      if (length(chosen_file()) == 1) {
         ventiles[, c("data_version", "year", "Normalised") := NULL]
         colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value")
       }
@@ -796,20 +1312,8 @@ server <- function(input, output, session) {
   output$ventileTable = renderDataTable({
     
     
-    datatable(ventileTable(), rownames = FALSE)
+    datatable(ventileTable(), rownames = FALSE, options = list(paging = FALSE))
   })
-
-  # Download handler
-  output$downloadData1 <- downloadHandler(
-    
-    
-    filename = function() {
-      paste("ventileData", Sys.Date(), "csv", sep = ".")
-    },
-    content = function(file) {
-      write.csv(ventileTable(), file)
-    }
-  )
 
   # Table title
   output$ventileDataTitle = renderText({
@@ -823,7 +1327,7 @@ server <- function(input, output, session) {
   })
 
   output$ventileDataSubTitle = renderText({
-    if(length(input$chosen_file) > 1){
+    if(length(chosen_file()) > 1){
       show_groups()
     }
     else {
@@ -837,9 +1341,9 @@ server <- function(input, output, session) {
 
   # Creates table
   incomeBandTable = reactive ({
-    
 
     dataset = copy(dataUpload())
+    
 
     incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
                          & Income.Measure == income_sort() & file %in% data_version_full()]
@@ -848,7 +1352,7 @@ server <- function(input, output, session) {
     
     if (input$y_type == "Income") {
       incomeBand[, c("Population", "Normalised") := NULL]
-      if (length(input$chosen_file) == 1) {
+      if (length(chosen_file()) == 1) {
         incomeBand[, c("data_version", "year") := NULL]
         colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()))
       }
@@ -859,7 +1363,7 @@ server <- function(input, output, session) {
     }
     else{
       incomeBand[, c("Value") := NULL] 
-      if (length(input$chosen_file) == 1) {
+      if (length(chosen_file()) == 1) {
         incomeBand[, c("data_version", "year", "Normalised") := NULL]
         colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value")
       }
@@ -884,22 +1388,9 @@ server <- function(input, output, session) {
   output$incomeBandTable = renderDataTable({
     
     
-    datatable(incomeBandTable(), rownames = FALSE)
+    datatable(incomeBandTable(), rownames = FALSE, options = list(paging = FALSE))
   })
 
-
-
-  # Download handler
-  output$downloadData2 <- downloadHandler(
-    
-    
-    filename = function() {
-      paste("incomeBandData", Sys.Date(), "csv", sep = ".")
-    },
-    content = function(file) {
-      write.csv(incomeBandTable(), file)
-    }
-  )
 
   # Table title
   output$incomeBandDataTitle = renderText({
@@ -914,7 +1405,7 @@ server <- function(input, output, session) {
 
   output$incomeBandDataSubTitle = renderText({
     
-    if(length(input$chosen_file) > 1){
+    if(length(chosen_file()) > 1){
       show_groups()
     }
     else {
