@@ -579,9 +579,8 @@ ui <- (navbarPage(
            p("Note if there is an 'S' in a table or graph, this means the underlying population on which the data point is calculated is too small to be released from the IDI. This value has thus been suppressed."),
            h5(strong("Disclaimer")),
            p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
-             tags$a(
-               href="https://www.stats.govt.nz/integrated-data/", 
-               "https://www.stats.govt.nz/integrated-data/",target="_blank"), ". The results are based in part on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for statistical purposes. Any discussion of data limitations or weaknesses is in the context of using the IDI for statistical purposes, and is not related to the data’s ability to support Inland Revenue’s core operational requirements."), 
+             a("https://www.stats.govt.nz/integrated-data/",
+               href="https://www.stats.govt.nz/integrated-data/"), ". The results are based in part on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for statistical purposes. Any discussion of data limitations or weaknesses is in the context of using the IDI for statistical purposes, and is not related to the data’s ability to support Inland Revenue’s core operational requirements."), 
            br()
            ),
            column(1)
@@ -633,7 +632,7 @@ ui <- (navbarPage(
              tags$li(strong("Accommodation supplement"),"indicates there is at least one individual receiving an Accommodation Supplement payment in the ‘population unit’"),
              tags$li(strong("Core benefits"),"indicates there is at least one individual receiving a core benefit (JSS, SLP, or SPS) in the ‘population unit’"),
              tags$li(strong("FTC"),"indicates there is at least one individual receiving a Family Tax Credit in the ‘population unit’"),
-             tags$li(strong("IWTC"),"indicates there is at least one individual receiving a In Work Tax Credit in the ‘population unit’"),
+             tags$li(strong("IWTC"),"indicates there is at least one individual receiving a In-Work Tax Credit in the ‘population unit’"),
              tags$li(strong("MFTC"),"indicates there is at least one individual receiving a Minimum Family Tax Credit in the ‘population unit’"),
              tags$li(strong("NZ Super"),"indicates there is at least one individual receiving NZ Superannuation in the ‘population unit’"),
              tags$li(strong("WEP"),"indicates there is at least one individual receiving a Winter Energy Payment in the ‘population unit’"),
@@ -716,7 +715,7 @@ ui <- (navbarPage(
     }
     
     document.getElementById('downloadData').onclick = function () {
-      exportTableToCSV('Distribution-Explorer-User-Tables' + new Date().toISOString().slice(0,10) + '.csv');
+      exportTableToCSV('Distribution-Explorer-User-Tables-' + new Date().toISOString().slice(0,10) + '.csv');
     };
   "))
   )
@@ -969,7 +968,7 @@ server <- function(input, output, session) {
       dataset[Value == "S", Suppressed := "S"]
       dataset[Value == "S", Value := 0L]
       dataset[,Value := as.numeric(Value)]
-      y_label <- paste0("Average Amount")
+      y_label <-"Average Amount"
       title_start <- "Average Income Components"
     }
     
@@ -985,7 +984,9 @@ server <- function(input, output, session) {
       ventiles[Value.Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
     }
 
-    p = ggplot(ventiles, aes(x = as.numeric(Income.Group), y = get(pop_type), label = Suppressed, fill = get(fill))) +
+    p = ggplot(ventiles, aes(x = as.numeric(Income.Group), y = get(pop_type), label = Suppressed, fill = get(fill), text = paste0("Ventile: ", as.numeric(Income.Group),
+                                                                                                                                  "\n", y_label, ": ", ifelse(Suppressed == "S", "Suppressed", get(pop_type)),
+                                                                                                                                  "\n", substr(label, 1, (nchar(label) - 1)),": ", get(fill)))) +
       labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Ventiles", "\n", subtitle),
            x = x_label, y = y_label) + 
       scale_x_continuous(breaks = seq(1:20)) +
@@ -1050,7 +1051,7 @@ server <- function(input, output, session) {
     p = p + labs(fill = label, color = NULL)
 
     p %>%
-      ggplotly() %>% config(modeBarButtons = list(list("toImage")))
+      ggplotly(tooltip = "text") %>% config(modeBarButtons = list(list("toImage")))
   })
 
   ################################
@@ -1158,7 +1159,9 @@ server <- function(input, output, session) {
                                    "$240k-$260k", "$260k-$280k", "$280k-$300k", "Above $300k"))
     }
 
-    p = ggplot(incomeBand, aes(x = Band, y=get(pop_type), label = Suppressed, fill=get(fill))) +
+    p = ggplot(incomeBand, aes(x = Band, y=get(pop_type), label = Suppressed, fill=get(fill), text = paste0("Income Band: ", Band,
+                                                                                                            "\n", y_label, ": ", ifelse(Suppressed == "S", "Suppressed", get(pop_type)),
+                                                                                                            "\n", substr(label, 1, (nchar(label) - 1)),": ", get(fill)))) +
       labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Bands", "\n", subtitle),
            x = x_label, y = y_label) + 
       scale_y_continuous(labels = comma, 
@@ -1224,7 +1227,7 @@ server <- function(input, output, session) {
     p = p + labs(fill = label, color = NULL)
 
     p %>%
-      ggplotly() %>% config(modeBarButtons = list(list("toImage")))
+      ggplotly(tooltip = "text") %>% config(modeBarButtons = list(list("toImage")))
 
   })
   ###############################
