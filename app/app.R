@@ -58,7 +58,8 @@ I_IC <- c(
 
 # Color blind palette for plotting
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
-ui <- (navbarPage(
+ui <- (
+  navbarPage(
   "||DRAFT|| Income Distribution Explorer",
   theme = bslib::bs_theme(bootswatch = "cosmo",
                           bg = "#FFFFFF",
@@ -93,35 +94,43 @@ ui <- (navbarPage(
           width = '100%'
         ),
         
-        
-        #For selecting the tax year from a given HES/EFU combination
-        conditionalPanel(
-          condition = "input.y_type != 'Income Components'",
-          "Select Tax Year(s):",
-          pickerInput(
-            inputId ="chosen_file", 
-            label = NULL, 
-            choices = data_versions,
-            selected = data_versions[[1]][1],
-            multiple = TRUE,
-            options = list(size = 5, 
-                           `live-search` = TRUE,
-                           "max-options" = 8)
-          )),
-        
-        conditionalPanel(
-          condition = "input.y_type == 'Income Components'",
-          "Select Tax Year:",
-          pickerInput(
-            inputId ="chosen_file_components", 
-            label = NULL, 
-            choices = data_versions,
-            selected = data_versions[[1]][1],
-            multiple = FALSE,
-            options = list(size = 5, 
-                           `live-search` = TRUE,
-                           "max-options" = 8)
-          )),
+        "Select Tax Year(s):",
+        fluidRow(
+          column(10,
+            #For selecting the tax year from a given HES/EFU combination
+            conditionalPanel(
+              condition = "input.y_type != 'Income Components'",
+              pickerInput(
+                inputId ="chosen_file", 
+                label = NULL, 
+                choices = data_versions,
+                selected = data_versions[[1]][1],
+                multiple = TRUE,
+                options = list(size = 5, 
+                               `live-search` = TRUE)
+              )),
+            
+            conditionalPanel(
+              condition = "input.y_type == 'Income Components'",
+              pickerInput(
+                inputId ="chosen_file_components", 
+                label = NULL, 
+                choices = data_versions,
+                selected = data_versions[[1]][1],
+                multiple = FALSE,
+                options = list(size = 5, 
+                               `live-search` = TRUE)
+              ))),
+          column(2,
+                 fileInputButton(
+                   "user_file",
+                   buttonLabel = NULL,
+                   icon = icon("upload", lib = "glyphicon"),
+                   multiple = TRUE,
+                   accept = c(".csv")
+                 )
+                 )
+        ),
         
         # For selecting the population type, HH or Fam
         "Select Population Unit:",
@@ -481,10 +490,10 @@ ui <- (navbarPage(
             selected = I_IC[1],
             options = list(size = 5, 
                            `live-search` = TRUE,
-                           "max-options" = 8),
+                           "max-options" = 8), 
             multiple = TRUE)
           
-        ),
+        )
       ),
       
       mainPanel(
@@ -530,7 +539,7 @@ ui <- (navbarPage(
               fluidRow(
                 column(12,
                    actionButton("downloadData",
-                                "Download Tables", )
+                                "Download Tables" )
                   ),
                 align = "center"
               ),
@@ -560,7 +569,8 @@ ui <- (navbarPage(
            h5(strong("Instructions")),
            p(strong(" 1)"), "Maximise the browser window to full screen."),
            p(strong(" 2)"), "Select Distribution Type: Choose whether you would like to investigate population, income, or income component distributions."),
-           p(strong(" 3)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year. Only a single year can be investigated in income components mode."),
+           p(strong(" 3a)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year. Only a single year can be investigated in income components mode."),
+           p(strong(" 3b)"), "Upload Data Files: using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are Distribution Explorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Ocnce uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
            p(strong(" 4)"), "Select Population Unit: either Households, Families, or Individuals."),
            p(strong(" 5)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years or income components mode are chosen, then only a single subgroup can be selected. The all households/families/individuals option captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
            p(strong(" 6)"), "Select the Income type: either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Income option."),
@@ -725,6 +735,9 @@ ui <- (navbarPage(
 
 server <- function(input, output, session) {
   
+  #increase allowed upload size
+  options(shiny.maxRequestSize=500*1024^2)
+  
   #stops normalised selection from preventing switch to income mode
   observeEvent(input$y_type %in% c("Income", "Income Components"), {
     updateMaterialSwitch(session, "normalised", value = FALSE)
@@ -773,7 +786,12 @@ server <- function(input, output, session) {
   data_year = reactive({
     year_list <- NULL
     for (file in chosen_file()) {
-      year_list <- c(year_list, get_year(file))
+      if (substr(file, 1, 5) == 'data/') {
+        year_list <- c(year_list, get_year(file))
+      }
+      else {
+        year_list <- c(year_list, NA)
+      }
     }
     return(year_list)
   })
@@ -782,7 +800,12 @@ server <- function(input, output, session) {
   data_version = reactive({
     version_list <- NULL
     for (file in chosen_file()) {
-      version_list <- c(version_list, paste0(get_hes(file), ", ", get_efu(file)))
+      if (substr(file, 1, 5) == 'data/') {
+        version_list <- c(version_list, paste0(get_hes(file), ", ", get_efu(file)))
+      }
+      else {
+        version_list <- c(version_list, file_lookup_reactive()[[file]])
+      }
     }
     return(version_list)
   })
@@ -790,7 +813,12 @@ server <- function(input, output, session) {
   data_version_full = reactive({
     full_version_list <- NULL
     for (file in chosen_file()) {
-      full_version_list <- c(full_version_list, paste0("20", get_year(file), " (", get_hes(file), ", ", get_efu(file), ")"))
+      if (substr(file, 1, 5) == 'data/') {
+        full_version_list <- c(full_version_list, paste0("20", get_year(file), " (", get_hes(file), ", ", get_efu(file), ")"))
+      }
+      else {
+        full_version_list <- c(full_version_list, file_lookup_reactive()[[file]])
+      }
     }
     return(full_version_list)
   })
@@ -860,29 +888,39 @@ server <- function(input, output, session) {
     }
   }) 
   
+  data_version_reactive <- reactiveVal(data_versions_lists())
+  file_lookup_reactive <- reactiveVal(list())
+
+  observeEvent(input$user_file, {
+    new_files <- input$user_file
+    lister_return <- file_lister(data_version_reactive(), file_lookup_reactive(), new_files)
+    data_version_reactive(lister_return[[1]])
+    file_lookup_reactive(lister_return[[2]])
+    updatePickerInput(
+      inputId ="chosen_file",
+      choices = data_version_reactive(),
+      selected = data_version_reactive()[["User Uploads"]][1]
+    )
+    updatePickerInput(
+      inputId ="chosen_file_components",
+      choices = data_version_reactive(),
+      selected = data_version_reactive()[["User Uploads"]][1]
+    )
+  })
+
   dataUpload = reactive({
     dt <- data.table()
     for (file in chosen_file()) {
-      dt_year = as.data.table(read.csv(paste0("data/", file)))
-      dt_year[Description=="Aged 0-16", Description:="Aged 0-15"]
-      dt_year[Description=="Super annuation", Description:="NZ Super"]
-      dt_year[Description=="Multiple families tax credits", Description:="MFTC"]
-      dt_year[Description=="Accomodation supplement", Description:="Accommodation supplement"]
-      dt_year[Description=="Family tax credits", Description:="FTC"]
-      dt_year[Description=="In work tax credits", Description:="IWTC"]
-      dt_year[Description=="Working for families", Description:="WFF"]
-      dt_year[Description=="Winter energy payment", Description:="WEP"]
-      dt_year[, data_version := paste0(get_hes(file), ", ", get_efu(file))]
-      dt_year[, year := paste0("20", get_year(file))]
-      dt_year[, file := paste0("20", get_year(file), " (", get_hes(file), ", ", get_efu(file), ")")]
-      
-      #allow back-compatibility with input data sets that do not specify Income Components, discard unwanted incomes for non-income component modes
-      if (input$y_type != "Income Components") {
-        if (!("Value.Type" %in% colnames(dt_year))) {
-          dt_year[,Value.Type := Income.Measure]
-        } 
-        dt_year <- dt_year[Income.Measure == Value.Type]
-        dt_year[, Value.Type := NULL]
+      dt_year = as.data.table(read.csv(file))
+      if (substr(file, 1, 5) == 'data/') {
+        dt_year[, data_version := paste0(get_hes(file), ", ", get_efu(file))]
+        dt_year[, year := paste0("20", get_year(file))]
+        dt_year[, file := paste0("20", get_year(file), " (", get_hes(file), ", ", get_efu(file), ")")]
+      }
+      else {
+        dt_year[, data_version := file_lookup_reactive()[[file]]]
+        dt_year[, year := "N/A"]
+        dt_year[, file := file_lookup_reactive()[[file]]]
       }
       dt <- rbind(dt, dt_year)
     }
@@ -898,19 +936,43 @@ server <- function(input, output, session) {
   ###############################
   output$ventilePlot = renderPlotly({
     
+    if(length(show_groups()) == 0){
+      stop("Please select a population subgroup.")
+      return(NULL)
+    }
+
+    if(length(chosen_file()) == 0){
+      stop("Please select a tax year.")
+      return(NULL)
+    }
+
+    if(input$y_type == "Income Components" & length(inc_comp()) == 0){
+      stop("Please select an income component.")
+      return(NULL)
+    }
+
     if(length(show_groups()) > 8){
-      stop("Maximum selection is 8 population subgroups")
+      stop("Maximum selection is 8 population subgroups.")
       return(NULL)
     }
-    
+
     if(length(chosen_file()) > 8){
-      stop("Maximum selection is 8 years")
+      stop("Maximum selection is 8 tax years.")
       return(NULL)
     }
-    
+
     if(length(inc_comp()) > 8){
-      stop("Maximum selection is 8 income components")
+      stop("Maximum selection is 8 income components.")
       return(NULL)
+    }
+
+    for (file in chosen_file()){
+      file_split <- strsplit(file, "\\.")
+      extension <- file_split[[1]][length(file_split[[1]])]
+      if (extension != "csv") {
+        stop("An uploaded file has the wrong file type (must be .csv)")
+        return(NULL)
+      }
     }
     
     if(length(chosen_file()) > 1){
@@ -921,12 +983,12 @@ server <- function(input, output, session) {
     else if (input$y_type != "Income Components") {
       fill <- "Description"
       label <- "Subgroups"
-      subtitle <- paste0("Tax Year 20", data_year(), " from ", data_version())
+      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
     }
     else {
-      fill <- "Value.Type"
+      fill <- "Value_Type"
       label <- "Income Components"
-      subtitle <- paste0(paste0("Tax Year 20", data_year(), " from ", data_version()))
+      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
     }
     
     if(input$pairPlot) {
@@ -975,16 +1037,16 @@ server <- function(input, output, session) {
     nudge_distance_y <- pmax(0.1, dataset[Description %in% show_groups(), max(get(pop_type))] / 100)
 
     if (input$y_type != "Income Components") {
-      ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
-                         & Income.Measure == income_sort()]
+      ventiles = dataset[Income_Type == "Income Quantiles" & Population_Type == input$populationType & Description %in% show_groups()
+                         & Income_Measure == income_sort() & Value_Type == income_sort()]
     }
     else {
-      ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
-                         & Income.Measure == income_sort() & Value.Type %in% inc_comp()]
-      ventiles[Value.Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
+      ventiles = dataset[Income_Type == "Income Quantiles" & Population_Type == input$populationType & Description %in% show_groups()
+                         & Income_Measure == income_sort() & Value_Type %in% inc_comp()]
+      ventiles[Value_Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
     }
 
-    p = ggplot(ventiles, aes(x = as.numeric(Income.Group), y = get(pop_type), label = Suppressed, fill = get(fill), text = paste0("Ventile: ", as.numeric(Income.Group),
+    p = ggplot(ventiles, aes(x = as.numeric(Income_Group), y = get(pop_type), label = Suppressed, fill = get(fill), text = paste0("Ventile: ", as.numeric(Income_Group),
                                                                                                                                   "\n", y_label, ": ", ifelse(Suppressed == "S", "Suppressed", get(pop_type)),
                                                                                                                                   "\n", substr(label, 1, (nchar(label) - 1)),": ", get(fill)))) +
       labs(title = paste0(title_start, " by ", input$populationType, " ", income_sort(), " Ventiles", "\n", subtitle),
@@ -1010,13 +1072,13 @@ server <- function(input, output, session) {
                                              axis.text.y = element_text(size = 5))
       if(input$plotType == "Histogram"){
         p = p + geom_col(position = "dodge", color = "white", fill = "#00718f") 
-        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f", position = position_dodge(width = 0.9)) + theme(legend.position = "none")
+        p = p + geom_text(aes(x = as.numeric(Income_Group), y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f", position = position_dodge(width = 0.9)) + theme(legend.position = "none")
 
       }
       else if(input$plotType == "linePlot") {
         p = p + geom_line(group = 1, color = "#00718f") + theme(legend.position = "none")
         p = p + geom_point(group = 1, color = "#00718f", fill = "#00718f")
-        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f", position = position_dodge(width = 0.9))
+        p = p + geom_text(aes(x = as.numeric(Income_Group), y = get(pop_type) + nudge_distance_y, group = get(fill)), color = "#00718f", position = position_dodge(width = 0.9))
 
       }
       else if(input$plotType == "smoothPlot") {
@@ -1027,13 +1089,13 @@ server <- function(input, output, session) {
       if(input$plotType == "Histogram"){
         p = p + geom_col(position = "dodge", colour = "white")
         p = p + scale_fill_manual(values = cbPalette)
-        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)), position = position_dodge(width = 0.9))
+        p = p + geom_text(aes(x = as.numeric(Income_Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)), position = position_dodge(width = 0.9))
         p = p + scale_color_manual(values = cbPalette) + guides(color = "none")
       }
       else if(input$plotType == "linePlot") {
         p = p + geom_line(aes(color = get(fill)), group = 1)
         p = p + geom_point(aes(color = get(fill)), group = 1)
-        p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)), position = position_dodge(width = 0))
+        p = p + geom_text(aes(x = as.numeric(Income_Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)), position = position_dodge(width = 0))
         p = p + scale_colour_manual(values = cbPalette) + guides(color = "none")
       }
       else if(input$plotType == "smoothPlot") {
@@ -1044,7 +1106,7 @@ server <- function(input, output, session) {
     else {
       p = p + geom_col(colour = "white")
       p = p + scale_fill_manual(values = cbPalette)
-      p = p + geom_text(aes(x = as.numeric(Income.Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)))
+      p = p + geom_text(aes(x = as.numeric(Income_Group), y = get(pop_type)+ nudge_distance_y, group = get(fill), color = get(fill)))
       p = p + scale_color_manual(values = cbPalette) + guides(color = "none")
     }
 
@@ -1058,17 +1120,44 @@ server <- function(input, output, session) {
   #Income band plot
   ################################
   output$incomeBandPlot = renderPlotly({
+    
+    if(length(show_groups()) == 0){
+      stop("Please select a population subgroup.")
+      return(NULL)
+    }
+
+    if(length(chosen_file()) == 0){
+      stop("Please select a tax year.")
+      return(NULL)
+    }
+
+    if(input$y_type == "Income Components" & length(inc_comp()) == 0){
+      stop("Please select an income component.")
+      return(NULL)
+    }
 
     if(length(show_groups()) > 8){
+      stop("Maximum selection is 8 population subgroups.")
       return(NULL)
     }
-    
-    if(length(input$chosen_years) > 8){
+
+    if(length(chosen_file()) > 8){
+      stop("Maximum selection is 8 tax years.")
       return(NULL)
     }
-    
+
     if(length(inc_comp()) > 8){
+      stop("Maximum selection is 8 income components.")
       return(NULL)
+    }
+
+    for (file in chosen_file()){
+      file_split <- strsplit(file, "\\.")
+      extension <- file_split[[1]][length(file_split[[1]])]
+      if (extension != "csv") {
+        stop("An uploaded file has the wrong file type (must be .csv)")
+        return(NULL)
+      }
     }
     
     if(length(chosen_file()) > 1){
@@ -1079,12 +1168,12 @@ server <- function(input, output, session) {
     else if (input$y_type != "Income Components"){
       fill <- "Description"
       label <- "Subgroups"
-      subtitle <- paste0("Tax Year 20", data_year(), " from ", data_version())
+      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
     }
     else {
-      fill <- "Value.Type"
+      fill <- "Value_Type"
       label <- "Income Components"
-      subtitle <- paste0("Tax Year 20", data_year(), " from ", data_version())
+      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
     }
     
     if(input$pairPlot) {
@@ -1096,7 +1185,6 @@ server <- function(input, output, session) {
     
     dataset= copy(dataUpload())
     
-
     dataset[, Suppressed := ""]
     
     if(input$normalised) {
@@ -1135,21 +1223,21 @@ server <- function(input, output, session) {
     nudge_distance_y <- pmax(0.1, dataset[Description %in% show_groups(), max(get(pop_type))] / 50)
     
     if (input$y_type != "Income Components") {
-      incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
-                           & Income.Measure == income_sort()]
+      incomeBand = dataset[Income_Type == "Income Bands" & Population_Type == input$populationType & Description %in% show_groups()
+                           & Income_Measure == income_sort() & Value_Type == income_sort()]
     }
     else {
-      incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
-                           & Income.Measure == income_sort() & Value.Type %in% inc_comp()]
-      incomeBand[Value.Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
+      incomeBand = dataset[Income_Type == "Income Bands" & Population_Type == input$populationType & Description %in% show_groups()
+                           & Income_Measure == income_sort() & Value_Type %in% inc_comp()]
+      incomeBand[Value_Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
     }
 
-    incomeBand[, Band := as.factor(Income.Group)]
+    incomeBand[, Band := as.factor(Income_Group)]
 
     # Different income bands for different income types.
     if (income_sort() == "Equivalised Disposable Income"){
       incomeBand$Band = factor(incomeBand$Band, levels =
-                                 c("Below $0", "$0-$10k", "$10k-$20k", "$20k-$30k", "$30k-$40", "$40k-$50k", "$50k-$60k",
+                                 c("Below $0", "$0-$10k", "$10k-$20k", "$20k-$30k", "$30k-$40k", "$40k-$50k", "$50k-$60k",
                                    "$60k-$70k", "$70k-$80k", "$80k-$90k", "$90k-$100k", "$100k-$110k", "$110k-$120k",
                                    "$120k-$130k", "$130k-$140k", "$140k-$150k", "Above $150k"))
     } else {
@@ -1238,7 +1326,7 @@ server <- function(input, output, session) {
     dataset = copy(dataUpload())
     
     
-    ds = dataset[Population.Type == input$populationType & Description %in% show_groups() & Income.Measure == income_sort()]
+    ds = dataset[Population_Type == input$populationType & Description %in% show_groups() & Income_Measure == income_sort()]
     if ("S" %in% ds[, Value]) {
       updateRadioGroupButtons(session, 
                               "plotType", 
@@ -1270,41 +1358,73 @@ server <- function(input, output, session) {
   # Creates table
   ventileTable = reactive ({
     
+    if(length(show_groups()) == 0){
+      stop("Please select a population subgroup.")
+      return(NULL)
+    }
+
+    if(length(chosen_file()) == 0){
+      stop("Please select a tax year.")
+      return(NULL)
+    }
+
+    if(input$y_type == "Income Components" & length(inc_comp()) == 0){
+      stop("Please select an income component.")
+      return(NULL)
+    }
+
+    if(length(show_groups()) > 8){
+      stop("Maximum selection is 8 population subgroups.")
+      return(NULL)
+    }
+
+    if(length(chosen_file()) > 8){
+      stop("Maximum selection is 8 tax years.")
+      return(NULL)
+    }
+
+    if(length(inc_comp()) > 8){
+      stop("Maximum selection is 8 income components.")
+      return(NULL)
+    }
+
+    for (file in chosen_file()){
+      file_split <- strsplit(file, "\\.")
+      extension <- file_split[[1]][length(file_split[[1]])]
+      if (extension != "csv") {
+        stop("An uploaded file has the wrong file type (must be .csv)")
+        return(NULL)
+      }
+    }
 
     dataset = copy(dataUpload())
     
-
-    ventiles = dataset[Income.Type == "Income Quantiles" & Population.Type == input$populationType & Description %in% show_groups()
-                       & Income.Measure == income_sort() & file %in% data_version_full()]
-
-    ventiles[, c("Index", "Income.Type", "file") := NULL]
+    ventiles = dataset[Income_Type == "Income Quantiles" & Population_Type == input$populationType & Description %in% show_groups()
+                       & Income_Measure == income_sort() & file %in% data_version_full() & Value_Type == income_sort()]
     
     if (input$y_type == "Income") {
-      ventiles[, c("Population", "Normalised") := NULL]
       if (length(chosen_file()) == 1) {
-        ventiles[, c("data_version", "year") := NULL]
+        ventiles <- ventiles[, .(Income_Group, Population_Type, Description, Income_Type, Value)]
         colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()))
       }
       else {
-        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()), "Version", "Year")
-        setcolorder(ventiles, c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", paste0("Average ", input$populationType, " ", income_sort())))
+        ventiles <- ventiles[, .(Income_Group, Population_Type, Description, Income_Type, data_version, year, Value)]
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", paste0("Average ", input$populationType, " ", income_sort()))
       }
     }
     else {
-      ventiles[, c("Value") := NULL]
       if (length(chosen_file()) == 1) {
-        ventiles[, c("data_version", "year", "Normalised") := NULL]
+        ventiles <- ventiles[, .(Income_Group, Population_Type, Description, Income_Type, Population)]
         colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value")
       }
       else if (input$normalised) {
-        ventiles[, c("Population") := NULL]
         ventiles[Normalised != "S", Normalised := round(as.numeric(Normalised))]
+        ventiles <- ventiles[, .(Income_Group, Population_Type, Description, Income_Type, data_version, year, Normalised)]
         colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Normalised Population Value")
       }
       else {
-        ventiles[, c("Normalised") := NULL]
-        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Population Value", "Version", "Year")
-        setcolorder(ventiles, c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value"))
+        ventiles <- ventiles[, .(Income_Group, Population_Type, Description, Income_Type, data_version, year, Population)]
+        colnames(ventiles) = c("Ventile", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value")
       }
     }
     return(ventiles)
@@ -1334,7 +1454,7 @@ server <- function(input, output, session) {
       show_groups()
     }
     else {
-      paste0("Tax Year 20", data_year(), " from ", data_version())
+      paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
     }
   })
 
@@ -1344,42 +1464,77 @@ server <- function(input, output, session) {
 
   # Creates table
   incomeBandTable = reactive ({
+    
+    if(length(show_groups()) == 0){
+      stop("Please select a population subgroup.")
+      return(NULL)
+    }
 
+    if(length(chosen_file()) == 0){
+      stop("Please select a tax year.")
+      return(NULL)
+    }
+
+    if(input$y_type == "Income Components" & length(inc_comp()) == 0){
+      stop("Please select an income component.")
+      return(NULL)
+    }
+
+    if(length(show_groups()) > 8){
+      stop("Maximum selection is 8 population subgroups.")
+      return(NULL)
+    }
+
+    if(length(chosen_file()) > 8){
+      stop("Maximum selection is 8 tax years.")
+      return(NULL)
+    }
+
+    if(length(inc_comp()) > 8){
+      stop("Maximum selection is 8 income components.")
+      return(NULL)
+    }
+
+    for (file in chosen_file()){
+      file_split <- strsplit(file, "\\.")
+      extension <- file_split[[1]][length(file_split[[1]])]
+      if (extension != "csv") {
+        stop("An uploaded file has the wrong file type (must be .csv)")
+        return(NULL)
+      }
+    }
+    
     dataset = copy(dataUpload())
     
+    incomeBand = dataset[Income_Type == "Income Bands" & Population_Type == input$populationType & Description %in% show_groups()
+                         & Income_Measure == income_sort() & file %in% data_version_full() & Value_Type == income_sort()]
 
-    incomeBand = dataset[Income.Type == "Income Bands" & Population.Type == input$populationType & Description %in% show_groups()
-                         & Income.Measure == income_sort() & file %in% data_version_full()]
-
-    incomeBand[, c("Index", "Income.Type", "file") := NULL]
     
     if (input$y_type == "Income") {
-      incomeBand[, c("Population", "Normalised") := NULL]
       if (length(chosen_file()) == 1) {
-        incomeBand[, c("data_version", "year") := NULL]
+        incomeBand <- incomeBand[, .(Income_Group, Population_Type, Description, Income_Type, Value)]
         colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()))
       }
       else {
-        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", paste0("Average ", input$populationType, " ", income_sort()), "Version", "Year")
-        setcolorder(incomeBand, c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", paste0("Average ", input$populationType, " ", income_sort())))
+        incomeBand <- incomeBand[, .(Income_Group, Population_Type, Description, Income_Type, data_version, year, Value)]
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", paste0("Average ", input$populationType, " ", income_sort()))
       }
     }
     else{
       incomeBand[, c("Value") := NULL] 
       if (length(chosen_file()) == 1) {
-        incomeBand[, c("data_version", "year", "Normalised") := NULL]
+        incomeBand <- incomeBand[, .(Income_Group, Population_Type, Description, Income_Type, Population)]
         colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value")
       }
       else if (input$normalised) {
-        incomeBand[, c("Population") := NULL]
         incomeBand[Normalised != "S", Normalised := round(as.numeric(Normalised))]
+        incomeBand <- incomeBand[, .(Income_Group, Population_Type, Description, Income_Type, data_version, year, Normalised)]
         colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Normalised Population Value")
         
       }
       else {
-        incomeBand[, c("Normalised") := NULL]
-        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Population Value", "Version", "Year")
-        setcolorder(incomeBand, c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value"))
+        incomeBand <- incomeBand[, .(Income_Group, Population_Type, Description, Income_Type, data_version, year, Population)]
+        colnames(incomeBand) = c("Income Band", "Population Type", "Population Subgroup", "Income Type", "Version", "Year", "Population Value")
       }
     }
     
@@ -1412,7 +1567,7 @@ server <- function(input, output, session) {
       show_groups()
     }
     else {
-    paste0("Tax Year 20", data_year(), " from ", data_version())
+      paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
     }
   })
 }
