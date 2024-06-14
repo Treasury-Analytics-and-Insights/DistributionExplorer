@@ -9,13 +9,13 @@ library(httpuv)
 #update to match new data
 
 #format: YY for the HES year of input data
-hes_version <- "21"
+hes_version <- "23"
 
 #format: "<EFU>YY" e.g. HYEFU23 for the EFU version of input data
-efu_version <- "HYEFU23"
+efu_version <- "BEFU24"
 
 #format: YYYY-MM-DD for the generation date of input data
-summary_date <- "2024-04-03"
+summary_date <- "2024-06-14"
 
 #format: c("YY", "YY" ... ) for each year of input data to be converted
 tax_years <- c("25", "26", "27", "28")
@@ -32,6 +32,5 @@ output <- merge(descriptors, values, by = "Index")
 
 for (tax_year in tax_years) {
   year_output <- output[Tax_Year == tax_year, .(Index, Income_Group, Income_Type, Population_Type, Description, Income_Measure, Value_Type, Value, Population)]
-  fwrite(output, paste0("app/data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
-
+  fwrite(year_output, paste0("app/data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
 }

@@ -16,51 +16,42 @@ source('functions.R')
 data_versions <- data_versions_lists()
 
 HH_pop_groups <- c(
-    "All households", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
+    "All households", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single with children", 
     "Single without children", "Couple with children", "Couple without children", 
     "Multiple families with children", "Multiple families without children", 
-    "With children", "Without children", "Accommodation supplement", 
-    "Core benefits", "FTC", "IWTC", 
-    "MFTC", "NZ Super", "WEP", "WFF")
+    "With children", "Without children", "Core Benefit recipients", "Core Benefit non-recipients",
+    "Working for Families recipients", "Working for Families non-recipients", "Family Tax Credit recipients",
+    "In-Work Tax Credit recipients", "BestStart recipients", "FamilyBoost recipients", "NZ Super recipients", "NZ Super non-recipients",
+    "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 Fam_pop_groups <- c(
-    "All families", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
-    "Single without children", "Couple with children", "Couple without children", 
-    "With children", "Without children", "Accommodation supplement", "Core benefits", 
-    "FTC", "IWTC", "MFTC", "NZ Super", "WEP", "WFF")
+  "All families", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single with children", 
+  "Single without children", "Couple with children", "Couple without children",
+  "With children", "Without children", "Core Benefit recipients", "Core Benefit non-recipients",
+  "Working for Families recipients", "Working for Families non-recipients", "Family Tax Credit recipients",
+  "In-Work Tax Credit recipients", "BestStart recipients", "FamilyBoost recipients", "NZ Super recipients", "NZ Super non-recipients",
+  "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 I_pop_groups <- c(
-    "All individuals", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Accommodation supplement", "Core benefits", 
-    "NZ Super", "WEP")
-
-HH_IC_groups <- c(
-  "All households", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
-  "Single without children", "Couple with children", "Couple without children", 
-  "Multiple families with children", "Multiple families without children", 
-  "With children", "Without children")
-
-Fam_IC_groups <- c(
-  "All families", "Aged 0-15", 'Aged 16-64', "Aged 65+", "Single with children", 
-  "Single without children", "Couple with children", "Couple without children", 
-  "With children", "Without children")
-
-I_IC_groups <- c(
-  "All individuals", "Aged 0-15", 'Aged 16-64', "Aged 65+")
+  "All individuals", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single (not living with partner)", 
+  "Living with partner", "Core Benefit recipients", "Core Benefit non-recipients",
+  "NZ Super recipients", "NZ Super non-recipients",
+  "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 HH_IC <- c(
-  "Housing Costs", "Wage/Salary Income", "Income Tax", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "NZ Super", "Accomodation Supplement", "WEP")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accomodation Supplement", "WEP", "Housing Costs")
 
 Fam_IC <- c(
-  "Wage/Salary Income", "Income Tax", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "NZ Super", "Accomodation Supplement", "WEP")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accomodation Supplement", "WEP")
 
 I_IC <- c(
-  "Wage/Salary Income", "Income Tax", "Core Benefits", "Self-Employment Income", "NZ Super", "Accomodation Supplement", "WEP")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accomodation Supplement", "WEP")
 
 # Color blind palette for plotting
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
 ui <- (
   navbarPage(
-  "||DRAFT|| Income Distribution Explorer",
+  "Income Distribution Explorer",
   theme = bslib::bs_theme(bootswatch = "cosmo",
                           bg = "#FFFFFF",
                           fg = "#00718f",
@@ -68,13 +59,6 @@ ui <- (
                           secondary = "#00718f"),
   tabPanel(
     "Tools",
-    fluidRow(
-      column(1),
-      column(10,
-             "This is a draft version of the Distribution Explorer that includes preliminary and fictionalised data."
-      ),
-      column(1)
-    ),
     fluidRow(
       column(1),
       column(10,
@@ -120,7 +104,9 @@ ui <- (
                 multiple = FALSE,
                 options = list(size = 5, 
                                `live-search` = TRUE)
-              ))),
+              ),
+              p(em("*When income components is selected, only a single tax year can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
+              )),
           column(2,
                  fileInputButton(
                    "user_file",
@@ -283,11 +269,12 @@ ui <- (
           pickerInput(
             inputId = "show_groups_HH_IC",
             label = NULL,
-            choices = HH_IC_groups,
-            selected = HH_IC_groups[1],
+            choices = HH_pop_groups,
+            selected = HH_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE),
-            multiple = FALSE)
+            multiple = FALSE),
+          p(em("*When income components is selected, only a single tax year can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
         ),
         
         # When family is selected
@@ -302,12 +289,13 @@ ui <- (
           pickerInput(
             inputId = "show_groups_Fam_IC",
             label = NULL,         
-            choices = Fam_IC_groups,
-            selected = Fam_IC_groups[1],
+            choices = Fam_pop_groups,
+            selected = Fam_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE,
                            "max-options" = 8),
-            multiple = FALSE)
+            multiple = FALSE),
+          p(em("*When income components is selected, only a single tax year can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
           
         ),
         
@@ -323,12 +311,13 @@ ui <- (
           pickerInput(
             inputId = "show_groups_I_IC",
             label = NULL,         
-            choices = I_IC_groups,
-            selected = I_IC_groups[1],
+            choices = I_pop_groups,
+            selected = I_pop_groups[1],
             options = list(size = 5, 
                            `live-search` = TRUE,
                            "max-options" = 8),
-            multiple = FALSE)
+            multiple = FALSE),
+          p(em("*When income components is selected, only a single population subgroup can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
           
         ),
         
@@ -337,15 +326,11 @@ ui <- (
           condition = "input.y_type != 'Income Components'",
           "Select Income Type:"
         ),
-        conditionalPanel(
-          condition = "input.y_type == 'Income Components'",
-          "Select Income Quantile/Band Type:"
-        ),
         
         
         # To select income sort
         conditionalPanel(
-          condition = "input.populationType == 'Household'",
+          condition = "input.populationType == 'Household' && input.y_type != 'Income Components'",
           radioGroupButtons(
             inputId = "incomeSortHH",
             label = NULL,
@@ -364,7 +349,7 @@ ui <- (
         ),
         
         conditionalPanel(
-          condition = "input.populationType == 'Family'",
+          condition = "input.populationType == 'Family' && input.y_type != 'Income Components'",
           radioGroupButtons(
             inputId = "incomeSortFam",
             label = NULL,
@@ -382,7 +367,7 @@ ui <- (
         ),
         
         conditionalPanel(
-          condition = "input.populationType == 'Individual'",
+          condition = "input.populationType == 'Individual' && input.y_type != 'Income Components'",
           radioGroupButtons(
             inputId = "incomeSortI",
             label = NULL,
@@ -825,13 +810,28 @@ server <- function(input, output, session) {
 
   income_sort = reactive({
     if (input$populationType == "Household") {
-      return(input$incomeSortHH)
+      if (input$y_type != "Income Components") {
+        return(input$incomeSortHH)
+      }
+      else {
+        return("Equivalised Disposable Income")
+      }
     }
     else if (input$populationType == "Family") {
-      return(input$incomeSortFam)
+      if (input$y_type != "Income Components") {
+        return(input$incomeSortFam)
+      }
+      else {
+        return("Equivalised Disposable Income")
+      }
     }
     else {
-      return(input$incomeSortI)
+      if (input$y_type != "Income Components") {
+        return(input$incomeSortI)
+      }
+      else {
+        return("Disposable Income")
+      }
     }
   })
   
@@ -988,7 +988,7 @@ server <- function(input, output, session) {
     else {
       fill <- "Value_Type"
       label <- "Income Components"
-      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
+      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0(show_groups(), ", Tax Year 20", data_year(), " from "), ""), data_version())
     }
     
     if(input$pairPlot) {
@@ -1043,7 +1043,7 @@ server <- function(input, output, session) {
     else {
       ventiles = dataset[Income_Type == "Income Quantiles" & Population_Type == input$populationType & Description %in% show_groups()
                          & Income_Measure == income_sort() & Value_Type %in% inc_comp()]
-      ventiles[Value_Type %in% c("Income Tax", "Housing Costs"), Value := -1 * Value]
+      ventiles[Value_Type %in% c("Income Tax", "ACC Levy", "Housing Costs"), Value := -1 * Value]
     }
 
     p = ggplot(ventiles, aes(x = as.numeric(Income_Group), y = get(pop_type), label = Suppressed, fill = get(fill), text = paste0("Ventile: ", as.numeric(Income_Group),
@@ -1173,7 +1173,7 @@ server <- function(input, output, session) {
     else {
       fill <- "Value_Type"
       label <- "Income Components"
-      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0("Tax Year 20", data_year(), " from "), ""), data_version())
+      subtitle <- paste0(ifelse(!(is.na(data_year())), paste0(show_groups(), ", Tax Year 20", data_year(), " from "), ""), data_version())
     }
     
     if(input$pairPlot) {
@@ -1242,7 +1242,7 @@ server <- function(input, output, session) {
                                    "$120k-$130k", "$130k-$140k", "$140k-$150k", "Above $150k"))
     } else {
       incomeBand$Band = factor(incomeBand$Band, levels =
-                                 c("Below $0", "$0-$20k", "$20k-$40", "$40k-$60k", "$60k-$80k", "$80k-$100k", "$100k-$120k",
+                                 c("Below $0", "$0-$20k", "$20k-$40k", "$40k-$60k", "$60k-$80k", "$80k-$100k", "$100k-$120k",
                                    "$120k-$140k", "$140k-$160k", "$160k-$180k", "$180k-$200k", "$200k-$220k", "$220k-$240k",
                                    "$240k-$260k", "$260k-$280k", "$280k-$300k", "Above $300k"))
     }
