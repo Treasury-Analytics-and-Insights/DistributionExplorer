@@ -746,8 +746,12 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  refresh_trigger <- reactive({
+    list(input$closeModal, input$tabChange)
+  })
+  
   #refreshes data so that all plots/graphs appear without input from user
-  observeEvent(input$tabChange, {
+  observeEvent(refresh_trigger(), {
     y_type <- input$y_type
     if (y_type != "Population") {
       updateRadioGroupButtons(session, "y_type", selected = "Population")

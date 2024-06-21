@@ -31,6 +31,6 @@ values <- data.table(openxlsx::read.xlsx(wb, sheet = "Values"))
 output <- merge(descriptors, values, by = "Index")
 
 for (tax_year in tax_years) {
-  year_output <- output[Tax_Year == tax_year, .(Index, Income_Group, Income_Type, Population_Type, Description, Income_Measure, Value_Type, Value, Population)]
+  year_output <- output[Tax_Year == tax_year, .(Income_Group, Income_Type, Population_Type, Description, Income_Measure, Value_Type, Value, Population)]
   fwrite(year_output, paste0("app/data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
 }

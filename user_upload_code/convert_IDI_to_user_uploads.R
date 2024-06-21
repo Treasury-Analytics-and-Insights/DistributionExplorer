@@ -23,10 +23,10 @@ summary_date <- "2024-04-03"
 tax_years <- c("25", "26", "27", "28")
 
 #format: add the reform code or other custom name for your user results
-result_type <- ""
+result_type <- "SNP8"
 
 #enter the file location and name of your user upload
-user_filename <- ""
+user_filename <- "~/Projects/DE Upgrade Project/archive_data/DE_results_HES23_BEFU24_SQ_2024-06-14_no_raw_info.xlsx"
 
 wb <- openxlsx::loadWorkbook(user_filename)
 descriptors <- data.table(openxlsx::read.xlsx(wb, sheet = "Descriptors"))
@@ -34,6 +34,12 @@ values <- data.table(openxlsx::read.xlsx(wb, sheet = "Values"))
 output <- merge(descriptors, values, by = "Index")
 
 for (tax_year in tax_years) {
-  year_output <- output[Tax_Year == tax_year, .(Index, Income_Group, Income_Type, Population_Type, Description, Income_Measure, Value_Type, Value, Population)]
-  fwrite(output, paste0("user_uploads/data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
+  year_output <- output[Tax_Year == tax_year, .(Income_Group, Income_Type, Population_Type, Description, Income_Measure, Value_Type, Value, Population)]
+  if (file.exists("user_upload_data")) {
+    fwrite(year_output, paste0("user_upload_data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
+  }
+  else {
+    dir.create("user_upload_data")
+    fwrite(year_output, paste0("user_upload_data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
+  }
 }
