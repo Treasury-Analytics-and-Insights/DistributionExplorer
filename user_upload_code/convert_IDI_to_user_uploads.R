@@ -23,7 +23,7 @@ summary_date <- "2024-04-03"
 tax_years <- c("25", "26", "27", "28")
 
 #format: add the reform code or other custom name for your user results
-result_type <- "SNP8"
+result_type <- "SQ"
 
 #enter the file location and name of your user upload
 user_filename <- "~/Projects/DE Upgrade Project/archive_data/DE_results_HES23_BEFU24_SQ_2024-06-14_no_raw_info.xlsx"
