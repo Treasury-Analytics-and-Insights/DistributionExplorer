@@ -554,11 +554,11 @@ ui <- (
            h5(strong("Instructions")),
            p(strong(" 1)"), "Maximise the browser window to full screen."),
            p(strong(" 2)"), "Select Distribution Type: Choose whether you would like to investigate population, income, or income component distributions."),
-           p(strong(" 3a)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year. Only a single year can be investigated in income components mode."),
+           p(strong(" 3a)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year. Only a single year can be investigated at a time in income components mode."),
            p(strong(" 3b)"), "Upload Data Files: using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are Distribution Explorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Ocnce uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
            p(strong(" 4)"), "Select Population Unit: either Households, Families, or Individuals."),
            p(strong(" 5)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years or income components mode are chosen, then only a single subgroup can be selected. The all households/families/individuals option captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
-           p(strong(" 6)"), "Select the Income type: either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Income option."),
+           p(strong(" 6)"), "Select Income Type: either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Disposable Income option. In income components mode, households and families are always categorized by Equivalised Disposable Income, while individuals are always categorized by Disposable Income."),
            p(strong(" 7)"), "Select Income Components: if using income components mode, select which components of income/expenditure you would like to be displayed. Please note that some components may overlap with other components (e.g. FTC is a component of WFF, and thus chosing WFF and FTC at the same time will give a misleading impression of total income). See Definitions for more information about each income component."),
            p(strong(" 8)"), "Select Plot Type: either Histogram, Line Plot or Smooth Line Plot. The Smooth Line Plot is not compatible with suppressed data points. Only Histograms are available in income components mode."),
            p(strong(" 9)"), "Choose if you would like plots displayed as a Pair Plot. This is useful when multiple subgroups or multiple year are selected. This mode is not available in income components mode."),
@@ -571,7 +571,10 @@ ui <- (
            p(strong("Income Distribution Tables")),
            p("This tab displays the data which is used to create the ventile and income band plots. A Download Table button is available to save the data in both tables as a CSV file."),
            p("Note that tables are not available for income components mode."),
+           
+           p(strong("Suppression")),
            p("Note if there is an 'S' in a table or graph, this means the underlying population on which the data point is calculated is too small to be released from the IDI. This value has thus been suppressed."),
+           
            h5(strong("Disclaimer")),
            p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
              a("https://www.stats.govt.nz/integrated-data/",
@@ -587,7 +590,7 @@ ui <- (
              column(10,
            h5(strong("Income Type")),
            
-           p(strong("Household equivalised disposable income: "), "is calculated by dividing the total household disposable income by an equivalisation factor. TAWA uses the 'modified OECD' equivalence scale to estimate the equivalisation factor and applies a weight of 1.0 to the first adult in the household, 0.5 to other household members aged 14 and over, and 0.3 to those aged less than 14. A 'family' equivalised disposable income is also provided but results should be treated with caution as this calculation is not used in regular TAWA analysis/advice."), 
+           p(strong("Household equivalised disposable income: "), "is calculated by dividing the total household disposable income by an equivalisation factor. TAWA uses the 'modified OECD' equivalence scale to estimate the equivalisation factor and applies a weight of 1.0 to the first adult in the household, 0.5 to other household members aged 14 and over, and 0.3 to those aged less than 14. A 'family' equivalised disposable income is also provided but results should be treated with caution as this calculation is not used in regular TAWA analysis or advice. This measure is not available for individuals."), 
            
            p(strong("Taxable income: "),"the sum of all core benefits (JSS, SLP, SPS), superannuation, student allowance, other taxable benefits, wage and salary income, redundancy income, self-employment income and other taxable income",strong("before"),"tax and any other deductions are removed. Note that negative income amounts are included when calculating taxable income though total taxable income is defined as greater than or equal to zero."),
            
@@ -607,37 +610,56 @@ ui <- (
            p("For a selected population unit, i.e. household, family, or individual,"),
            
            tags$ul(
-             tags$li(strong("Aged 0-15"),"indicates there is a least one individual aged 0-15 in the ‘population unit’"),
-             tags$li(strong("Aged 16-64"),"indicates there is a least one individual aged 16-64 in the ‘population unit’"),
-             tags$li(strong("Aged 65+"),"indicates there is a least one individual aged 16-64 in the ‘population unit’")),
+             tags$li(strong("Aged 0-15"),"indicates there is a least one individual aged 0-15 in the ‘population unit’."),
+             tags$li(strong("Aged 16-35"),"indicates there is a least one individual aged 16-35 in the ‘population unit’."),
+             tags$li(strong("Aged 36-50"),"indicates there is a least one individual aged 36-50 in the ‘population unit’."),
+             tags$li(strong("Aged 51-64"),"indicates there is a least one individual aged 51-64 in the ‘population unit’."),
+             tags$li(strong("Aged 16-64"),"indicates there is a least one individual aged 16-64 in the ‘population unit’."),
+             tags$li(strong("Aged 65+"),"indicates there is a least one individual aged 16-64 in the ‘population unit’.")),
+           
+           p("Note that the following household/family structure groups are not available for individuals"),
+           tags$ul(
+             tags$li(strong("Single with children"),"indicates that there is a single adult (an adult not living with a partner) with children in the ‘population unit’."),
+             tags$li(strong("Single without children"),"indicates that there is a single adult without children in the ‘population unit’."),
+             tags$li(strong("Couple with children"),"indicates that there is a couple with children in the ‘population unit’."),
+             tags$li(strong("Couple without children"),"indicates that there is a couple without in the ‘population unit’."),
+             tags$li(strong("Multiple families with children"),"indicates that there are multiple families in the household with at least one family having at least one child. Households only."),
+             tags$li(strong("Multiple families without children"),"indicates that there are multiple families in the household with no children. Households only."),
+             tags$li(strong("With children"),"indicates that there are children in the ‘population unit’."),
+             tags$li(strong("Without children"),"indicates that there are no children in the ‘population unit’.")),
+           
            
            tags$ul(
-             tags$li(strong("Single with children"),"indicates that there is a single adult with children in the ‘population unit’"),
-             tags$li(strong("Single without children"),"indicates that there is a single adult without children in the ‘population unit’"),
-             tags$li(strong("Couple with children"),"indicates that there is a couple with children in the ‘population unit’"),
-             tags$li(strong("Couple without children"),"indicates that there is a couple without in the ‘population unit’"),
-             tags$li(strong("Multiple families with children"),"indicates that there are multiple families in the household with at least one family having at least one child"),
-             tags$li(strong("Multiple families without children"),"indicates that there are multiple families in the household with no children")),
+             tags$li(strong("Single (not living with partner)"),"indicates that an individual is single, or is in a relationship but not living in a household with their partner. Individuals only."),
+             tags$li(strong("Living with partner"),"indicates that an individual is living in a household with their partner. Individuals only.")),
            
+
            tags$ul(
-             tags$li(strong("With children"),"indicates that there are children in the ‘population unit’"),
-             tags$li(strong("Without children"),"indicates that there are no children in the ‘population unit’")),
-           
-           tags$ul(
-             tags$li(strong("Accommodation supplement"),"indicates there is at least one individual receiving an Accommodation Supplement payment in the ‘population unit’"),
-             tags$li(strong("Core benefits"),"indicates there is at least one individual receiving a core benefit (JSS, SLP, or SPS) in the ‘population unit’"),
-             tags$li(strong("FTC"),"indicates there is at least one individual receiving a Family Tax Credit in the ‘population unit’"),
-             tags$li(strong("IWTC"),"indicates there is at least one individual receiving a In-Work Tax Credit in the ‘population unit’"),
-             tags$li(strong("MFTC"),"indicates there is at least one individual receiving a Minimum Family Tax Credit in the ‘population unit’"),
-             tags$li(strong("NZ Super"),"indicates there is at least one individual receiving NZ Superannuation in the ‘population unit’"),
-             tags$li(strong("WEP"),"indicates there is at least one individual receiving a Winter Energy Payment in the ‘population unit’"),
-             tags$li(strong("WFF"),"indicates there is at least one individual receiving Working for Families in the ‘population unit’")),
+             tags$li(strong("Accommodation Supplement recipients"),"indicates there is at least one individual receiving an Accommodation Supplement payment in the ‘population unit’."),
+             tags$li(strong("Accommodation Supplement non-recipients"),"indicates that no individuals receiving an Accommodation Supplement payment are in the ‘population unit’."),
+             
+             tags$li(strong("Core Benefit recipients"),"indicates there is at least one individual receiving a core benefit (JSS, SLP, or SPS) in the ‘population unit’."),
+             tags$li(strong("Core Benefit non-recipients"),"indicates that no individuals receiving a core benefit (JSS, SLP, or SPS) are in the ‘population unit’."),
+             
+             tags$li(strong("NZ Super recipients"),"indicates there is at least one individual receiving NZ Superannuation in the ‘population unit’."),
+             tags$li(strong("NZ Super non-recipients"),"indicates there are no individuals receiving NZ Superannuation in the ‘population unit’."),
+             
+             tags$li(strong("Winter Energy Payment recipients"),"indicates there is at least one individual receiving a Winter Energy Payment in the ‘population unit’.")),
+            
+           p("Note that the following Working for Families benefits are recieved at the family level and thus are not available for individuals."),
+           tags$ul(  
+             tags$li(strong("Working for Families recipients"),"indicates there is at least one individual receiving Working for Families in the ‘population unit’."),
+             tags$li(strong("Working for Families non-recipients"),"indicates there are no individuals receiving Working for Families in the ‘population unit’."),
+             tags$li(strong("Family Tax Credit recipients"),"indicates there is at least one individual receiving a Family Tax Credit in the ‘population unit’."),
+             tags$li(strong("In-Work Tax Credit recipients"),"indicates there is at least one individual receiving a In-Work Tax Credit in the ‘population unit’."),
+             tags$li(strong("BestStart recipients"),"indicates there is at least one individual receiving a BestStart in the ‘population unit’."),
+             tags$li(strong("FamilyBoost recipients"),"indicates there is at least one individual receiving a FamilyBoost in the ‘population unit’.")),
            
            br(),
            
            h5(strong("Income components")),
            
-           p("Not all of the income components listed are available for every population unit. For example, housing costs are only avaialble over households, and WFF tax credits are not available over individuals."),
+           p("Not all of the income components listed are available for every population unit. For example, housing costs are only available over households, and WFF tax credits are not available over individuals."),
            
            p("For a selected population unit, "),
            
@@ -651,7 +673,8 @@ ui <- (
              tags$li(strong("FTC"),"indicates the average total of Family Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("MFTC"),"indicates the average total of Minimum Family Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("IWTC"),"indicates the average total of In-Work Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
-             tags$li(strong("Best Start"),"indicates the average total of Best Start Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
+             tags$li(strong("BestStart"),"indicates the average total of BestStart Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
+             tags$li(strong("FamilyBoost"),"indicates the average total of FamilyBoost rebate that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("NZ Super"),"indicates the average total of New Zealand Superannuation that is recieced by the ‘population unit’"),
              tags$li(strong("Accommodation Supplement"),"indicates the average total of Accommodation Supplement that is received by the ‘population unit’"),
              tags$li(strong("WEP"),"indicates the average total of Winter Energy Payment that is received by the ‘population unit’")),
