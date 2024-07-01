@@ -1,35 +1,44 @@
 # Introduction
-This package contains prototype software for running the Income Distribution 
-Explorer application. This software was developed by Boston Hart during the 
-summer of 2021/22. Boston joined the Analytics and Insights team as part of
-the Analytics and Research in Government internship programme.
+This package contains a preliminary version of the DistributionExplorer application. 
+This software was developed by Boston Hart during the summer of 2021/22. Boston joined the 
+Analytics and Insights team as part of the Analytics and Research in Government internship 
+programme.
 
-The Income Distribution Explorer is a tool which can be used to understand the
-income distribution for households and families in New Zealand.
+This branch contains further developments made to the tool in 2024. These developments are
+preliminary, and have not undergone a full quality assurance process. This version of the
+DistributionExplorer is intended as an open-source research tool, and does not constitute official 
+Treasury advice. We welcome suggestions, feedback, and corrections from users.
 
-The tool allows users to explore and compare the income distribution for 
-subgroups of interest, for example households with individuals aged over 65, 
-households with (and without) children, and households in receipt of different 
-welfare payments.
+The DistributionExplorer is a tool which can be used to understand the
+income distribution of households, families, and individuals in New Zealand.
+
+The tool allows users to explore and compare the income distribution for the population, and for
+subgroups of interest. For example, users can compare the differences between households with individuals 
+aged over 65, households with (and without) children, and households in receipt of different 
+government transfers. The tool also allows users to view how the components of
+income vary over the income distribution.
 
 # Overview
 
-To run, open the distExplApp.R program in RStudio and click RunApp. 
+This version of the DistributionExplorer is available at https://treasury-analytics-and-insights.github.io/DistributionExplorer/
 
-This should open a browser window (like Microsoft Edge or Chrome) with the Income 
-Distribution Explorer app running.
-
-From there you can click Browse (top left of window) and select the attached Excel 
-file containing the income estimates (DistExpl_HES20_TY20_HYEFU21.xlsx)
+Please note that Shinylive applications can take a long time to load on the first launch, as various packages
+required by the application are installed in the background. 
 
 # Notes
 
 Income estimates were produced using Treasury’s micro-simulation model of the tax and 
-welfare system - TAWA. Income estimates are for the 2019/20 tax year using HES 2019/20 
-augmented using IDI data, inflated and population adjusted with HYEFU21 inflation 
-estimates.
+welfare system - TAWA. Income estimates will be updated periodically as new economic forecasts
+and survey data become available.
 
-# Disclaimer
+# IDI Disclaimer
+
+These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit https://www.stats.govt.nz/integrated-data/.
+
+The results are based in part on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for statistical purposes. Any discussion of data limitations or weaknesses is in the context of using the IDI for statistical purposes, 
+and is not related to the data’s ability to support Inland Revenue’s core operational requirements."
+
+# General Disclaimer
 
 This code can be modified and customised by users to meet the needs of specific
 projects, and in all cases the Analytics and Insights Team,

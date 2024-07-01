@@ -51,7 +51,7 @@ I_IC <- c(
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
 ui <- (
   navbarPage(
-  "Income Distribution Explorer",
+  "DistributionExplorer",
   theme = bslib::bs_theme(bootswatch = "cosmo",
                           bg = "#FFFFFF",
                           fg = "#00718f",
@@ -549,19 +549,19 @@ ui <- (
            column(1),
            column(10,
            h5(strong("Overview")),
-           p("The income distribution explorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
-           p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions between subgroups or over time. The population can be sorted into subgroups based on factors including age, family strucutre and relationship status, as well as government transfer status."),
+           p("The DistributionExplorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
+           p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions between subgroups or over time. The population can be sorted into subgroups based on factors including age, family structure and relationship status, as well as government transfer status."),
            h5(strong("Instructions")),
            p(strong(" 1)"), "Maximise the browser window to full screen."),
            p(strong(" 2)"), "Select Distribution Type: Choose whether you would like to investigate population, income, or income component distributions."),
-           p(strong(" 3a)"), "Select Tax Years: using the drop down menu, choose the desired tax year or years. There may be mulitple data sources available for a single tax year. Only a single year can be investigated at a time in income components mode."),
-           p(strong(" 3b)"), "Upload Data Files: using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are Distribution Explorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Ocnce uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
-           p(strong(" 4)"), "Select Population Unit: either Households, Families, or Individuals."),
+           p(strong(" 3a)"), "Select Tax Years: Using the drop down menu, choose the desired tax year or years. There may be multiple data sources available for a single tax year. Only a single year can be investigated at a time in income components mode."),
+           p(strong(" 3b)"), "Upload Data Files: Using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are DistributionExplorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Once uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
+           p(strong(" 4)"), "Select Population Unit: Either Households, Families, or Individuals."),
            p(strong(" 5)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years or income components mode are chosen, then only a single subgroup can be selected. The all households/families/individuals option captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
-           p(strong(" 6)"), "Select Income Type: either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Disposable Income option. In income components mode, households and families are always categorized by Equivalised Disposable Income, while individuals are always categorized by Disposable Income."),
-           p(strong(" 7)"), "Select Income Components: if using income components mode, select which components of income/expenditure you would like to be displayed. Please note that some components may overlap with other components (e.g. FTC is a component of WFF, and thus chosing WFF and FTC at the same time will give a misleading impression of total income). See Definitions for more information about each income component."),
-           p(strong(" 8)"), "Select Plot Type: either Histogram, Line Plot or Smooth Line Plot. The Smooth Line Plot is not compatible with suppressed data points. Only Histograms are available in income components mode."),
-           p(strong(" 9)"), "Choose if you would like plots displayed as a Pair Plot. This is useful when multiple subgroups or multiple year are selected. This mode is not available in income components mode."),
+           p(strong(" 6)"), "Select Income Type: Either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Disposable Income option. In income components mode, households and families are always categorized by Equivalised Disposable Income, while individuals are always categorized by Disposable Income."),
+           p(strong(" 7)"), "Select Income Components: If using income components mode, select which components of income/expenditure you would like to be displayed. Please note that some components may overlap with other components (e.g. FTC is a component of WFF, and thus choosing WFF and FTC at the same time will give a misleading impression of total WFF income). See Definitions for more information about each income component."),
+           p(strong(" 8)"), "Select Plot Type: Either Histogram, Line Plot or Smooth Line Plot. The Smooth Line Plot is not compatible with suppressed data points. Only Histograms are available in income components mode."),
+           p(strong(" 9)"), "Choose if you would like plots displayed as a Pair Plot. This is useful when multiple subgroups or multiple years are selected. This mode is not available in income components mode."),
            p(strong("10)"), "If looking at population distributions over multiple years, choose if you would like to normalise population values by the lowest population year (as determined by household population). This can make comparing population distributions across years more straightforward."),
 
            p(strong("Income Distribution Plots")),
@@ -590,13 +590,13 @@ ui <- (
              column(10,
            h5(strong("Income Type")),
            
-           p(strong("Household equivalised disposable income: "), "is calculated by dividing the total household disposable income by an equivalisation factor. TAWA uses the 'modified OECD' equivalence scale to estimate the equivalisation factor and applies a weight of 1.0 to the first adult in the household, 0.5 to other household members aged 14 and over, and 0.3 to those aged less than 14. A 'family' equivalised disposable income is also provided but results should be treated with caution as this calculation is not used in regular TAWA analysis or advice. This measure is not available for individuals."), 
+           p(strong("Household Equivalised Disposable Income: "), "is calculated by dividing the total household disposable income by an equivalisation factor. TAWA uses the 'modified OECD' equivalence scale to estimate the equivalisation factor and applies a weight of 1.0 to the first adult in the household, 0.5 to other household members aged 14 and over, and 0.3 to those aged less than 14. A 'family' equivalised disposable income is also provided but results should be treated with caution as this calculation is not used in regular TAWA analysis or advice. This measure is not available for individuals."), 
            
-           p(strong("Taxable income: "),"the sum of all core benefits (JSS, SLP, SPS), superannuation, student allowance, other taxable benefits, wage and salary income, redundancy income, self-employment income and other taxable income",strong("before"),"tax and any other deductions are removed. Note that negative income amounts are included when calculating taxable income though total taxable income is defined as greater than or equal to zero."),
+           p(strong("Taxable Income: "),"the sum of all core benefits (JSS, SLP, SPS), superannuation, student allowance, other taxable benefits, wage and salary income, redundancy income, self-employment income and other taxable income",strong("before"),"tax and any other deductions are removed. Note that negative income amounts are included when calculating taxable income though total taxable income is defined as greater than or equal to zero."),
            
-           p(strong("Disposable income: "), "total income less tax and other deductions such as the ACC levy. Here, total income is the sum of taxable income (see above), abated accommodation supplement, winter energy payment, other non-taxable benefits, non-taxable income, and working for family tax credits. Note negative incomes are included."),
+           p(strong("Disposable Income: "), "total income less tax and other deductions such as the ACC levy. Here, total income is the sum of taxable income (see above), abated accommodation supplement, winter energy payment, other non-taxable benefits, non-taxable income, and working for family tax credits. Note negative incomes are included."),
            
-           p(strong("After Housing Cost Disposable income: "), "disposable income less housing costs. Only available for households as housing costs are reported at the household level."),
+           p(strong("After Housing Cost Disposable Income: "), "disposable income less housing costs. Only available for households as housing costs are reported at the household level."),
            
            
            br(),
@@ -646,7 +646,7 @@ ui <- (
              
              tags$li(strong("Winter Energy Payment recipients"),"indicates there is at least one individual receiving a Winter Energy Payment in the ‘population unit’.")),
             
-           p("Note that the following Working for Families benefits are recieved at the family level and thus are not available for individuals."),
+           p("Note that the following Working for Families benefits are received at the family level and thus are not available for individuals."),
            tags$ul(  
              tags$li(strong("Working for Families recipients"),"indicates there is at least one individual receiving Working for Families in the ‘population unit’."),
              tags$li(strong("Working for Families non-recipients"),"indicates there are no individuals receiving Working for Families in the ‘population unit’."),
@@ -668,14 +668,14 @@ ui <- (
              tags$li(strong("Wage/Salary Income"),"indicates the average total of wage and salary income that is earned by the ‘population unit’"),
              tags$li(strong("Income Tax"),"indicates the average total of income tax that is paid by the ‘population unit’"),
              tags$li(strong("Core Benefits"),"indicates the average total of core benefits (e.g. JSS, SLP, and SPS) received by the ‘population unit’"),
-             tags$li(strong("Self-Employement Income"),"indicates the average total of self-employment income that is earned by the ‘population unit’"),
-             tags$li(strong("WFF"),"indicates the average total of Working For Families tax credits received by the ‘population unit’. Please note that this includes the totals of FTC, MFTC, IWTC, and Best Start which are also listed seperately as income components."),
+             tags$li(strong("Self-Employment Income"),"indicates the average total of self-employment income that is earned by the ‘population unit’"),
+             tags$li(strong("WFF"),"indicates the average total of Working For Families tax credits received by the ‘population unit’. Please note that this includes the totals of FTC, MFTC, IWTC, and Best Start which are also listed separately as income components."),
              tags$li(strong("FTC"),"indicates the average total of Family Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("MFTC"),"indicates the average total of Minimum Family Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("IWTC"),"indicates the average total of In-Work Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("BestStart"),"indicates the average total of BestStart Tax Credit that is received by the ‘population unit’. Note this is included in the WFF total."),
              tags$li(strong("FamilyBoost"),"indicates the average total of FamilyBoost rebate that is received by the ‘population unit’. Note this is included in the WFF total."),
-             tags$li(strong("NZ Super"),"indicates the average total of New Zealand Superannuation that is recieced by the ‘population unit’"),
+             tags$li(strong("NZ Super"),"indicates the average total of New Zealand Superannuation that is received by the ‘population unit’"),
              tags$li(strong("Accommodation Supplement"),"indicates the average total of Accommodation Supplement that is received by the ‘population unit’"),
              tags$li(strong("WEP"),"indicates the average total of Winter Energy Payment that is received by the ‘population unit’")),
            
