@@ -37,16 +37,8 @@ save_dir <- "user_upload_data"
 
 for (tax_year in tax_years) {
   year_output <- output[Tax_Year == tax_year, .(Income_Group, Income_Type, Population_Type, Description, Income_Measure, Value_Type, Value, Population)]
-  if (save_dir == "user_upload_data"){
-    if (file.exists("user_upload_data")) {
-      fwrite(year_output, paste0("user_upload_data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
-    }
-    else {
-      dir.create("user_upload_data")
-      fwrite(year_output, paste0("user_upload_data/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
-    }
+  if (!dir.exists(save_dir)) {
+    dir.create(save_dir)
   }
-  else {
-    fwrite(year_output, paste0(save_dir, "/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
-  }
+  fwrite(year_output, paste0(save_dir, "/DE_HES", hes_version, "_", efu_version, "_TY", tax_year, "_", result_type, ".csv"))
 }
