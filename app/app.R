@@ -34,7 +34,7 @@ Fam_pop_groups <- c(
 
 I_pop_groups <- c(
   "All individuals", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single (not living with partner)", 
-  "Living with partner", "Core Benefit recipients", "Core Benefit non-recipients",
+  "Living with partner",
   "NZ Super recipients", "NZ Super non-recipients",
   "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
@@ -575,7 +575,9 @@ ui <- (
            p(strong("Suppression")),
            p("Note if there is an 'S' in a table or graph, this means the underlying population on which the data point is calculated is too small to be released from the IDI. This value has thus been suppressed."),
            
-           h5(strong("Disclaimer")),
+           h5(strong("Disclaimers")),
+           p("The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
+           p("It is provided as-is, for research purposes only, with absolutely no warranty or guarantee of correctness."),
            p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
              a("https://www.stats.govt.nz/integrated-data/",
                href="https://www.stats.govt.nz/integrated-data/"), ". The results are based in part on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for statistical purposes. Any discussion of data limitations or weaknesses is in the context of using the IDI for statistical purposes, and is not related to the data’s ability to support Inland Revenue’s core operational requirements."), 
@@ -752,6 +754,9 @@ server <- function(input, output, session) {
   })
   
   showModal(modalDialog(
+    p("The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
+    p("It is provided as-is, for research purposes only, with absolutely no warranty or guarantee of correctness."),
+    hr(),
     p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) 
           which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
       a("https://www.stats.govt.nz/integrated-data/", href = "https://www.stats.govt.nz/integrated-data/"), 
