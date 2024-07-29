@@ -39,13 +39,13 @@ I_pop_groups <- c(
   "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 HH_IC <- c(
-  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accomodation Supplement", "WEP", "Housing Costs")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accommodation Supplement", "WEP", "Housing Costs")
 
 Fam_IC <- c(
-  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accomodation Supplement", "WEP")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accommodation Supplement", "WEP")
 
 I_IC <- c(
-  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accomodation Supplement", "WEP")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "NZ Super", "Accommodation Supplement", "WEP")
 
 # Color blind palette for plotting
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
@@ -478,6 +478,10 @@ ui <- (
                            "max-options" = 8), 
             multiple = TRUE)
           
+        ),
+        conditionalPanel(
+          condition = "input.y_type == 'Income Components'",
+          p(em("*Income components represent the average amount per population unit in each quantile/band, and are rounded to the nearest $1000. Thus, if the amount recieved on average by population units in each ventile/income band is too small, the income component will not be displayed. It may be useful to select a more targeted population subgroup to explore the contribution of this component to incomes."))
         )
       ),
       
@@ -551,6 +555,8 @@ ui <- (
            h5(strong("Overview")),
            p("The DistributionExplorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
            p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions between subgroups or over time. The population can be sorted into subgroups based on factors including age, family structure and relationship status, as well as government transfer status."),
+           p("The population and income distributions in this tool are modelled using the Treasury’s Tax and Welfare Analysis (TAWA) model. TAWA uses survey and administrative data, policy settings, and Treasury economic projections to model incomes in New Zealand. More information on the TAWA model can be found on ", a("the Treasury website",
+             href="https://www.treasury.govt.nz/information-and-services/financial-management-and-advice/revenue-expenditure/tax-and-welfare-analysis-tawa-model")),
            h5(strong("Instructions")),
            p(strong(" 1)"), "Maximise the browser window to full screen."),
            p(strong(" 2)"), "Select Distribution Type: Choose whether you would like to investigate population, income, or income component distributions."),
