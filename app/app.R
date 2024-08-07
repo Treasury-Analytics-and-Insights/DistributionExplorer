@@ -30,7 +30,7 @@ Fam_pop_groups <- c(
   "With children", "Without children", "Core Benefit recipients", "Core Benefit non-recipients",
   "Working for Families recipients", "Working for Families non-recipients", "Family Tax Credit recipients",
   "In-Work Tax Credit recipients", "BestStart recipients", "FamilyBoost recipients", "NZ Super recipients", "NZ Super non-recipients",
-  "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
+  "Accommodation Supplement recipients", "Winter Energy Payment recipients")
 
 I_pop_groups <- c(
   "All individuals", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single (not living with partner)", 
