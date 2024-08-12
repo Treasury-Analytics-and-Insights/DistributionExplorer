@@ -1,24 +1,20 @@
 # Introduction
-This package contains the DistributionExplorer application. The distribution explorer is a 
+This package contains the DistributionExplorer application. The DistributionExplorer is a 
 tool that allows users to explore the income distribution of households, families and individuals
 in New Zealand, using outputs created by the Treasury's Tax and Welfare Analysis (TAWA) model.
 This software was first developed by Boston Hart during the summer of 2021/22. Boston joined the 
 Analytics and Insights team as part of the Analytics and Research in Government internship 
 programme.
 
-Further developments have been made to the tool in 2024. These developments are
-preliminary, and have not undergone a full quality assurance process. This version of the
-DistributionExplorer is intended as an open-source research tool, and does not constitute official 
-Treasury advice. We welcome suggestions, feedback, and corrections from users.
+This version of the DistributionExplorer is intended as an open-source research tool, and does 
+not constitute official Treasury advice. We welcome suggestions, feedback, and corrections from users.
 
-The DistributionExplorer is a tool which can be used to understand the
-income distribution of households, families, and individuals in New Zealand.
-
-The tool allows users to explore and compare the income distribution for the population, and for
-subgroups of interest. For example, users can compare the differences between households with individuals 
-aged over 65, households with and without children, and households in receipt of different 
-government transfers. The tool also allows users to view how the components of
-income vary over the income distribution.
+The DistributionExplorer is a tool which can be used to understand the income distribution of households, 
+families, and individuals in New Zealand. The tool allows users to explore and compare the income distribution 
+for the population, and for subgroups of interest. For example, users can compare the differences between 
+households with individuals aged over 65, households with and without children, and households in receipt of 
+different government transfers. The tool also allows users to view how the components of income vary over the 
+income distribution.
 
 # Overview
 
