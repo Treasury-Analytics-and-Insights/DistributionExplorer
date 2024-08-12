@@ -30,7 +30,7 @@ Fam_pop_groups <- c(
   "With children", "Without children", "Core Benefit recipients", "Core Benefit non-recipients",
   "Working for Families recipients", "Working for Families non-recipients", "Family Tax Credit recipients",
   "In-Work Tax Credit recipients", "BestStart recipients", "FamilyBoost recipients", "NZ Super recipients", "NZ Super non-recipients",
-  "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
+  "Accommodation Supplement recipients", "Winter Energy Payment recipients")
 
 I_pop_groups <- c(
   "All individuals", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single (not living with partner)", 
@@ -583,7 +583,7 @@ ui <- (
            
            h5(strong("Disclaimers")),
            p("The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
-           p("It is provided as-is, for research purposes only, with absolutely no warranty or guarantee of correctness."),
+           p("The app provides insights into the income distributions of households, families, and individuals in New Zealand. The app is provided as-is and for research purposes only. Despite reasonable measures taken to ensure quality and accuracy, the Treasury makes no warranty, or guarantee, express or implied, nor assumes any legal liability or responsibility for the accuracy, correctness, completeness or use of any information that is provided through the app."),
            p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
              a("https://www.stats.govt.nz/integrated-data/",
                href="https://www.stats.govt.nz/integrated-data/", target="_blank"), ". The results are based in part on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for statistical purposes. Any discussion of data limitations or weaknesses is in the context of using the IDI for statistical purposes, and is not related to the data’s ability to support Inland Revenue’s core operational requirements."), 
@@ -625,7 +625,7 @@ ui <- (
              tags$li(strong("Aged 16-64"),"indicates there is a least one individual aged 16-64 in the ‘population unit’."),
              tags$li(strong("Aged 65+"),"indicates there is a least one individual aged 16-64 in the ‘population unit’.")),
            
-           p("Note that the following household/family structure groups are not available for individuals"),
+           p("Note that the following household/family structure groups are not available for individuals,"),
            tags$ul(
              tags$li(strong("Single with children"),"indicates that there is a single adult (an adult not living with a partner) with children in the ‘population unit’."),
              tags$li(strong("Single without children"),"indicates that there is a single adult without children in the ‘population unit’."),
@@ -636,7 +636,7 @@ ui <- (
              tags$li(strong("With children"),"indicates that there are children in the ‘population unit’."),
              tags$li(strong("Without children"),"indicates that there are no children in the ‘population unit’.")),
            
-           
+           p("The following subgroups are only available for individuals,"),
            tags$ul(
              tags$li(strong("Single (not living with partner)"),"indicates that an individual is single, or is in a relationship but not living in a household with their partner. Individuals only."),
              tags$li(strong("Living with partner"),"indicates that an individual is living in a household with their partner. Individuals only.")),
@@ -761,7 +761,7 @@ server <- function(input, output, session) {
   
   showModal(modalDialog(
     p("The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
-    p("It is provided as-is, for research purposes only, with absolutely no warranty or guarantee of correctness."),
+    p("The app provides insights into the income distributions of households, families, and individuals in New Zealand. The app is provided as-is and for research purposes only. Despite reasonable measures taken to ensure quality and accuracy, the Treasury makes no warranty, or guarantee, express or implied, nor assumes any legal liability or responsibility for the accuracy, correctness, completeness or use of any information that is provided through the app."),
     hr(),
     p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) 
           which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
