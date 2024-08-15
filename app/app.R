@@ -51,7 +51,11 @@ I_IC <- c(
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
 ui <- (
   navbarPage(
-  "DistributionExplorer",
+  windowTitle = "DistributionExplorer",
+  title = div(a(img(src = "logo.png", height = "30px"),
+                href = "https://www.treasury.govt.nz/", target = "_blank", style = "text-decoration:none;"),
+              "DistributionExplorer", 
+              style = "float:left;"),
   theme = bslib::bs_theme(bootswatch = "cosmo",
                           bg = "#FFFFFF",
                           fg = "#00718f",
@@ -64,7 +68,6 @@ ui <- (
       column(10,
     sidebarLayout(
       sidebarPanel(
-        
         "Select Distribution Type:",
         radioGroupButtons(
           inputId = "y_type",
@@ -555,7 +558,7 @@ ui <- (
            h5(strong("Overview")),
            p("The DistributionExplorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
            p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions between subgroups or over time. The population can be sorted into subgroups based on factors including age, family structure and relationship status, as well as government transfer status."),
-           p("The population and income distributions in this tool are modelled using the Treasury’s Tax and Welfare Analysis (TAWA) model. TAWA uses survey and administrative data, policy settings, and Treasury economic projections to model incomes in New Zealand. More information on the TAWA model can be found on ", a("the Treasury website",
+           p("The population and income distributions in this tool are modelled using the Treasury’s Tax and Welfare Analysis (TAWA) model. TAWA uses survey and administrative data, policy settings, and Treasury economic projections to model incomes in New Zealand. More information on the TAWA model can be found on ", a("the Treasury website.",
              href="https://www.treasury.govt.nz/information-and-services/financial-management-and-advice/revenue-expenditure/tax-and-welfare-analysis-tawa-model", target="_blank")),
            h5(strong("Instructions")),
            p(strong(" 1)"), "Maximise the browser window to full screen."),
@@ -696,6 +699,45 @@ ui <- (
              column(1)
            )
   ),
+  footer = div(
+    style = "color:white;background-color:#00718f;margin:0;",
+    div(class = "foot", style = "text-align:center",
+    p(HTML('&emsp;'),
+      "© 2024",
+      HTML('&emsp;'),
+    a("Analytics and Insights", href = "https://github.com/Treasury-Analytics-and-Insights/", target = "_blank", style=("text-decoration:none;")),
+    HTML('&emsp;'),
+    a("Te Tai Ohanga - New Zealand Treasury", href = "https://treasury.govt.nz/", target = "_blank", style=("text-decoration:none;")),
+    HTML('&emsp;'),
+    a("Source", href = "https://github.com/Treasury-Analytics-and-Insights/DistributionExplorer", target = "_blank", style=("text-decoration:none;")),
+    HTML('&emsp;'),
+    a("License", href = "https://github.com/Treasury-Analytics-and-Insights/DistributionExplorer/blob/main/LICENSE.md",  target = "_blank", style=("text-decoration:none;")),
+    style="padding:2px;margin:0;")
+    ),
+    tags$head(
+      tags$style(HTML("
+
+              .navbar {
+                padding-left: 15px;
+                padding-right: 15px;
+                --bslib-navbar-default-bg: #00718F;
+                  --bslib-navbar-inverse-bg: #FFFFFF;
+                  --bs-navbar-color: rgba(255, 255, 255, 1);
+                  --bs-navbar-hover-color: rgba(255, 255, 255, 0.8);
+              }
+                     "))
+    ),
+    tags$body(
+      tags$style(HTML("
+            .container-fluid {
+      padding: 0;
+      }
+              .foot {
+              --bs-link-color-rgb:255,255,255;
+              --bs-link-hover-color-rgb:204,227,233;
+              }
+                     "))
+    ),
   tags$script(HTML("
     function downloadCSV(csv, filename) {
       var csvFile;
@@ -743,7 +785,7 @@ ui <- (
     document.getElementById('downloadData').onclick = function () {
       exportTableToCSV('Distribution-Explorer-User-Tables-' + new Date().toISOString().slice(0,10) + '.csv');
     };
-  "))
+  ")))
   )
 )
 
