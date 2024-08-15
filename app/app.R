@@ -707,7 +707,7 @@ ui <- (
       HTML('&emsp;'),
     a("Analytics and Insights", href = "https://github.com/Treasury-Analytics-and-Insights/", target = "_blank", style=("text-decoration:none;")),
     HTML('&emsp;'),
-    a("Te Tai Ohanga - New Zealand Treasury", href = "https://treasury.govt.nz/", target = "_blank", style=("text-decoration:none;")),
+    a("Te Tai Ōhanga - New Zealand Treasury", href = "https://treasury.govt.nz/", target = "_blank", style=("text-decoration:none;")),
     HTML('&emsp;'),
     a("Source", href = "https://github.com/Treasury-Analytics-and-Insights/DistributionExplorer", target = "_blank", style=("text-decoration:none;")),
     HTML('&emsp;'),
