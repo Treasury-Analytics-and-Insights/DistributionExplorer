@@ -51,7 +51,7 @@ I_IC <- c(
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
 ui <- (
   navbarPage(
-  windowTitle = "DistributionExplorer",
+  windowTitle = "DistributionExplorer - The Treasury New Zealand",
   title = div(a(img(src = "logo.png", height = "30px"),
                 href = "https://www.treasury.govt.nz/", target = "_blank", style = "text-decoration:none;"),
               "DistributionExplorer", 
@@ -705,9 +705,9 @@ ui <- (
     p(HTML('&emsp;'),
       "© 2024",
       HTML('&emsp;'),
-    a("Analytics and Insights", href = "https://github.com/Treasury-Analytics-and-Insights/", target = "_blank", style=("text-decoration:none;")),
+    a("Analytics & Insights", href = "https://github.com/Treasury-Analytics-and-Insights/", target = "_blank", style=("text-decoration:none;")),
     HTML('&emsp;'),
-    a("Te Tai Ōhanga - New Zealand Treasury", href = "https://treasury.govt.nz/", target = "_blank", style=("text-decoration:none;")),
+    a("Te Tai Ōhanga - The Treasury New Zealand", href = "https://treasury.govt.nz/", target = "_blank", style=("text-decoration:none;")),
     HTML('&emsp;'),
     a("Source", href = "https://github.com/Treasury-Analytics-and-Insights/DistributionExplorer", target = "_blank", style=("text-decoration:none;")),
     HTML('&emsp;'),
@@ -715,8 +715,10 @@ ui <- (
     style="padding:2px;margin:0;")
     ),
     tags$head(
+      tags$link(rel = "shortcut icon", 
+                href = "favicon.ico"
+      ),
       tags$style(HTML("
-
               .navbar {
                 padding-left: 15px;
                 padding-right: 15px;
