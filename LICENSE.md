@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2022 Analytics & Insights - Te Tai Ōhanga - New Zealand Treasury
+Copyright (c) 2024 Analytics & Insights - Te Tai Ōhanga - New Zealand Treasury
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
