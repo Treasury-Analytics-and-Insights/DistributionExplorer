@@ -51,10 +51,10 @@ I_IC <- c(
 cbPalette <- c("#00718f", "#E69F00",  "#009E73", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "#000000")
 ui <- (
   navbarPage(
-  windowTitle = "DistributionExplorer - The Treasury New Zealand",
+  windowTitle = "Distribution Explorer - The Treasury New Zealand",
   title = div(a(img(src = "logo.png", height = "30px"),
                 href = "https://www.treasury.govt.nz/", target = "_blank", style = "text-decoration:none;"),
-              "DistributionExplorer", 
+              "Distribution Explorer", 
               style = "float:left;"),
   theme = bslib::bs_theme(bootswatch = "cosmo",
                           bg = "#FFFFFF",
@@ -556,7 +556,7 @@ ui <- (
            column(1),
            column(10,
            h5(strong("Overview")),
-           p("The DistributionExplorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
+           p("The Distribution Explorer is a tool which can be used to understand the income distribution of households, families, and individuals in New Zealand."),
            p("The tool allows users to explore the income distribution for population subgroups, as well as compare income distributions between subgroups or over time. The population can be sorted into subgroups based on factors including age, family structure and relationship status, as well as government transfer status."),
            p("The population and income distributions in this tool are modelled using the Treasury’s Tax and Welfare Analysis (TAWA) model. TAWA uses survey and administrative data, policy settings, and Treasury economic projections to model incomes in New Zealand. More information on the TAWA model can be found on ", a("the Treasury website.",
              href="https://www.treasury.govt.nz/information-and-services/financial-management-and-advice/revenue-expenditure/tax-and-welfare-analysis-tawa-model", target="_blank")),
@@ -564,7 +564,7 @@ ui <- (
            p(strong(" 1)"), "Maximise the browser window to full screen."),
            p(strong(" 2)"), "Select Distribution Type: Choose whether you would like to investigate population, income, or income component distributions."),
            p(strong(" 3a)"), "Select Tax Years: Using the drop down menu, choose the desired tax year or years. There may be multiple data sources available for a single tax year. Only a single year can be investigated at a time in income components mode."),
-           p(strong(" 3b)"), "Upload Data Files: Using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are DistributionExplorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Once uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
+           p(strong(" 3b)"), "Upload Data Files: Using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are Distribution Explorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Once uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
            p(strong(" 4)"), "Select Population Unit: Either Households, Families, or Individuals."),
            p(strong(" 5)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years or income components mode are chosen, then only a single subgroup can be selected. The all households/families/individuals option captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
            p(strong(" 6)"), "Select Income Type: Either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Disposable Income option. In income components mode, households and families are always categorized by Equivalised Disposable Income, while individuals are always categorized by Disposable Income."),
@@ -585,7 +585,7 @@ ui <- (
            p("Note if there is an 'S' in a table or graph, this means the underlying population on which the data point is calculated is too small to be released from the IDI. This value has thus been suppressed."),
            
            h5(strong("Disclaimers")),
-           p("The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
+           p("The Distribution Explorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
            p("The app provides insights into the income distributions of households, families, and individuals in New Zealand. The app is provided as-is and for research purposes only. Despite reasonable measures taken to ensure quality and accuracy, the Treasury makes no warranty, or guarantee, express or implied, nor assumes any legal liability or responsibility for the accuracy, correctness, completeness or use of any information that is provided through the app."),
            p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information about the IDI please visit ", 
              a("https://www.stats.govt.nz/integrated-data/",
@@ -804,7 +804,7 @@ server <- function(input, output, session) {
   })
   
   showModal(modalDialog(
-    p("The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
+    p("The Distribution Explorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser."),
     p("The app provides insights into the income distributions of households, families, and individuals in New Zealand. The app is provided as-is and for research purposes only. Despite reasonable measures taken to ensure quality and accuracy, the Treasury makes no warranty, or guarantee, express or implied, nor assumes any legal liability or responsibility for the accuracy, correctness, completeness or use of any information that is provided through the app."),
     hr(),
     p("These results are not official statistics. They have been created for research purposes from the Integrated Data Infrastructure (IDI) 

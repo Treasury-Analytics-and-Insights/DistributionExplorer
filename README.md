@@ -1,15 +1,15 @@
 # Introduction
-This package contains the DistributionExplorer application. The DistributionExplorer is a 
+This package contains the Distribution Explorer application. The Distribution Explorer is a 
 tool that allows users to explore the income distribution of households, families and individuals
 in New Zealand, using outputs created by the Treasury's Tax and Welfare Analysis (TAWA) model.
 This software was first developed by Boston Hart during the summer of 2021/22. Boston joined the 
 Analytics and Insights team as part of the Analytics and Research in Government internship 
 programme.
 
-This version of the DistributionExplorer is intended as an open-source research tool, and does 
+This version of the Distribution Explorer is intended as an open-source research tool, and does 
 not constitute official Treasury advice. We welcome suggestions, feedback, and corrections from users.
 
-The DistributionExplorer is a tool which can be used to understand the income distribution of households, 
+The Distribution Explorer is a tool which can be used to understand the income distribution of households, 
 families, and individuals in New Zealand. The tool allows users to explore and compare the income distribution 
 for the population, and for subgroups of interest. For example, users can compare the differences between 
 households with individuals aged over 65, households with and without children, and households in receipt of 
@@ -18,7 +18,7 @@ income distribution.
 
 # Overview
 
-This version of the DistributionExplorer is available at https://treasury-analytics-and-insights.github.io/DistributionExplorer/
+This version of the Distribution Explorer is available at https://treasury-analytics-and-insights.github.io/DistributionExplorer/
 
 Please note that Shinylive applications can take a long time to load on the first launch, as various packages
 required by the application are installed in the background. 
@@ -31,7 +31,7 @@ and survey data become available.
 
 # Disclaimers
 
-The DistributionExplorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser.
+The Distribution Explorer has been developed by the Analytics & Insights team in the New Zealand Treasury's Office of the Chief Economic Adviser.
 The app provides insights into the income distributions of households, families, and individuals in New Zealand. The app is provided as-is 
 and for research purposes only. Despite reasonable measures taken to ensure quality and accuracy, the Treasury makes no warranty, or guarantee, 
 express or implied, nor assumes any legal liability or responsibility for the accuracy, correctness, completeness or use of any information 
