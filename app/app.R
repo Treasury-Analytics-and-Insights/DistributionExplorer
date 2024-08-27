@@ -39,10 +39,10 @@ I_pop_groups <- c(
   "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 HH_IC <- c(
-  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accommodation Supplement", "WEP", "Housing Costs")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accommodation Supplement", "WEP", "Housing Costs")
 
 Fam_IC <- c(
-  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "MFTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accommodation Supplement", "WEP")
+  "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "FTC", "IWTC", "BestStart", "FamilyBoost", "NZ Super", "Accommodation Supplement", "WEP")
 
 I_IC <- c(
   "Wage/Salary Income", "Income Tax", "ACC Levy", "Core Benefits", "Self-Employment Income", "WFF", "NZ Super", "Accommodation Supplement", "WEP")
@@ -277,7 +277,7 @@ ui <- (
             options = list(size = 5, 
                            `live-search` = TRUE),
             multiple = FALSE),
-          p(em("*When income components is selected, only a single tax year can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
+          p(em("*When income components is selected, only a single population subgroup can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
         ),
         
         # When family is selected
@@ -298,7 +298,7 @@ ui <- (
                            `live-search` = TRUE,
                            "max-options" = 8),
             multiple = FALSE),
-          p(em("*When income components is selected, only a single tax year can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
+          p(em("*When income components is selected, only a single population subgroup can be chosen."), style = "margin-top: -10px; margin-bottom: 7px;")
           
         ),
         
@@ -715,6 +715,7 @@ ui <- (
     style="padding:2px;margin:0;")
     ),
     tags$head(
+      includeHTML("google-analytics.html"),
       tags$link(rel = "shortcut icon", 
                 href = "favicon.ico"
       ),
