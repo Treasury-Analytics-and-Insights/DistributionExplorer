@@ -715,7 +715,6 @@ ui <- (
     style="padding:2px;margin:0;")
     ),
     tags$head(
-      includeHTML("google-analytics.html"),
       tags$link(rel = "shortcut icon", 
                 href = "favicon.ico"
       ),
