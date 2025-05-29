@@ -644,7 +644,7 @@ ui <- (
              tags$li(strong("Single (not living with partner)"),"indicates that an individual is single, or is in a relationship but not living in a household with their partner. Individuals only."),
              tags$li(strong("Living with partner"),"indicates that an individual is living in a household with their partner. Individuals only.")),
            
-            p("The followig subgroups are payments received by individuals and so are available for households, families, and individuals,"),
+            p("The following subgroups are payments received by individuals and so are available for households, families, and individuals,"),
            tags$ul(
              tags$li(strong("Accommodation Supplement recipients"),"indicates there is at least one individual receiving an Accommodation Supplement payment in the ‘population unit’."),
              tags$li(strong("Accommodation Supplement non-recipients"),"indicates that no individuals receiving an Accommodation Supplement payment are in the ‘population unit’."),
