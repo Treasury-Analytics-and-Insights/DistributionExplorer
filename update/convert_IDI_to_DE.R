@@ -9,16 +9,16 @@ library(httpuv)
 #update to match new data
 
 #format: YY for the HES year of input data
-hes_version <- "23"
+hes_version <- "24"
 
 #format: "<EFU>YY" e.g. HYEFU23 for the EFU version of input data
-efu_version <- "BEFU24"
+efu_version <- "BEFU25"
 
 #format: YYYY-MM-DD for the generation date of input data
-summary_date <- "2024-06-14"
+summary_date <- "2025-05-28"
 
 #format: c("YY", "YY" ... ) for each year of input data to be converted
-tax_years <- c("25", "26", "27", "28")
+tax_years <- c("25", "26", "27", "28", "29")
 
 #format: "SQ" or reform code
 result_type <- "SQ"
