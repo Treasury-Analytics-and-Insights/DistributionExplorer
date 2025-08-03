@@ -30,12 +30,12 @@ Fam_pop_groups <- c(
   "With children", "Without children", "Core Benefit recipients", "Core Benefit non-recipients",
   "Working for Families recipients", "Working for Families non-recipients", "Family Tax Credit recipients",
   "In-Work Tax Credit recipients", "BestStart recipients", "FamilyBoost recipients", "NZ Super recipients", "NZ Super non-recipients",
-  "Accommodation Supplement recipients", "Winter Energy Payment recipients")
+  "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 I_pop_groups <- c(
   "All individuals", "Aged 0-15", 'Aged 16-35', 'Aged 36-50', 'Aged 51-64', 'Aged 16-64', "Aged 65+", "Single (not living with partner)", 
   "Living with partner",
-  "NZ Super recipients", "NZ Super non-recipients",
+  "Core Benefit recipients", "Core Benefit non-recipients", "NZ Super recipients", "NZ Super non-recipients",
   "Accommodation Supplement recipients", "Accommodation Supplement non-recipients", "Winter Energy Payment recipients")
 
 HH_IC <- c(
@@ -567,7 +567,7 @@ ui <- (
            p(strong(" 3b)"), "Upload Data Files: Using the file upload button, you may also choose to upload unique TAWA outputs at this point. This can be useful to compare policy changes to the status quo. Acceptable files are Distribution Explorer outputs that have been converted to .csv files using the convert_IDI_to_user_uploads.R script. Once uploaded, select the desired Tax Years/Scenarios from the drop down menu. Ensure that each uploaded file has a unique and descriptive name."),
            p(strong(" 4)"), "Select Population Unit: Either Households, Families, or Individuals."),
            p(strong(" 5)"), "Select Population Subgroups: Using the drop down menu, select the desired population subgroups. When multiple years or income components mode are chosen, then only a single subgroup can be selected. The all households/families/individuals option captures the entire population. Up to 8 subgroups can be selected at a time, however we suggest that no more than 4 subgroups are selected otherwise the plots become difficult to interpret."),
-           p(strong(" 6)"), "Select Income Type: Either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Disposable Income option. In income components mode, households and families are always categorized by Equivalised Disposable Income, while individuals are always categorized by Disposable Income."),
+           p(strong(" 6)"), "Select Income Type: Either Equivalised Disposable Income, Taxable Income, or Disposable Income.  When the selected population unit is households, After Housing Cost Disposable income can be selected. Individuals do not have an Equivalised Disposable Income option. In income components mode, households, families, and individuals are always categorized by taxable income."),
            p(strong(" 7)"), "Select Income Components: If using income components mode, select which components of income/expenditure you would like to be displayed. Please note that some components may overlap with other components (e.g. FTC is a component of WFF, and thus choosing WFF and FTC at the same time will give a misleading impression of total WFF income). See Definitions for more information about each income component."),
            p(strong(" 8)"), "Select Plot Type: Either Histogram, Line Plot or Smooth Line Plot. The Smooth Line Plot is not compatible with suppressed data points. Only Histograms are available in income components mode."),
            p(strong(" 9)"), "Choose if you would like plots displayed as a Pair Plot. This is useful when multiple subgroups or multiple years are selected. This mode is not available in income components mode."),
@@ -644,7 +644,7 @@ ui <- (
              tags$li(strong("Single (not living with partner)"),"indicates that an individual is single, or is in a relationship but not living in a household with their partner. Individuals only."),
              tags$li(strong("Living with partner"),"indicates that an individual is living in a household with their partner. Individuals only.")),
            
-
+            p("The following subgroups are payments received by individuals and so are available for households, families, and individuals,"),
            tags$ul(
              tags$li(strong("Accommodation Supplement recipients"),"indicates there is at least one individual receiving an Accommodation Supplement payment in the ‘population unit’."),
              tags$li(strong("Accommodation Supplement non-recipients"),"indicates that no individuals receiving an Accommodation Supplement payment are in the ‘population unit’."),
@@ -657,7 +657,7 @@ ui <- (
              
              tags$li(strong("Winter Energy Payment recipients"),"indicates there is at least one individual receiving a Winter Energy Payment in the ‘population unit’.")),
             
-           p("Note that the following Working for Families benefits are received at the family level and thus are not available for individuals."),
+           p("Note that the following Working for Families benefits are received at the family level and thus are not available for individuals,"),
            tags$ul(  
              tags$li(strong("Working for Families recipients"),"indicates there is at least one individual receiving Working for Families in the ‘population unit’."),
              tags$li(strong("Working for Families non-recipients"),"indicates there are no individuals receiving Working for Families in the ‘population unit’."),
@@ -723,9 +723,9 @@ ui <- (
                 padding-left: 15px;
                 padding-right: 15px;
                 --bslib-navbar-default-bg: #00718F;
-                  --bslib-navbar-inverse-bg: #FFFFFF;
-                  --bs-navbar-color: rgba(255, 255, 255, 1);
-                  --bs-navbar-hover-color: rgba(255, 255, 255, 0.8);
+                --bslib-navbar-inverse-bg: #FFFFFF;
+                --bs-navbar-color: rgba(255, 255, 255, 1);
+                --bs-navbar-hover-color: rgba(255, 255, 255, 0.8);
               }
                      "))
     ),
@@ -896,7 +896,7 @@ server <- function(input, output, session) {
         return(input$incomeSortHH)
       }
       else {
-        return("Equivalised Disposable Income")
+        return("Taxable Income")
       }
     }
     else if (input$populationType == "Family") {
@@ -904,7 +904,7 @@ server <- function(input, output, session) {
         return(input$incomeSortFam)
       }
       else {
-        return("Equivalised Disposable Income")
+        return("Taxable Income")
       }
     }
     else {
@@ -912,7 +912,7 @@ server <- function(input, output, session) {
         return(input$incomeSortI)
       }
       else {
-        return("Disposable Income")
+        return("Taxable Income")
       }
     }
   })

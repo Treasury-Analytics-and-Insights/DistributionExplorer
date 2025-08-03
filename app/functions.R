@@ -73,23 +73,30 @@ get_year <- function(filename) {
 
 norm_pop <- function(dt) {
   total_pop_HH <- dt[Income_Type == "Income Quantiles" & Population_Type == "Household" & Description == "All households" & Income_Measure == "Equivalised Disposable Income" &
-                     Value_Type == "Equivalised Disposable Income", sum(as.numeric(Population)), by = file]
+                     Value_Type == "Equivalised Disposable Income", sum(as.numeric(Population), na.rm = TRUE), by = file]
   
   total_pop_Fam <- dt[Income_Type == "Income Quantiles" & Population_Type == "Family" & Description == "All families" & Income_Measure == "Equivalised Disposable Income" &
-                        Value_Type == "Equivalised Disposable Income", sum(as.numeric(Population)), by = file]
+                        Value_Type == "Equivalised Disposable Income", sum(as.numeric(Population), na.rm = TRUE), by = file]
+  
+  total_pop_Ind <- dt[Income_Type == "Income Quantiles" & Population_Type == "Individual" & Description == "All individuals" & Income_Measure == "Disposable Income" &
+                        Value_Type == "Disposable Income", sum(as.numeric(Population), na.rm = TRUE), by = file]
   
   min_pop_HH <- total_pop_HH[,min(as.numeric(V1))]
   min_file <- total_pop_HH[as.numeric(V1) == min_pop_HH, file]
   min_pop_Fam <- total_pop_Fam[file == min_file, as.numeric(V1)]
+  min_pop_Ind <- total_pop_Ind[file == min_file, as.numeric(V1)]
   
   total_pop_HH[, factor := min_pop_HH / V1 ]
   total_pop_Fam[, factor := min_pop_Fam / V1 ]
+  total_pop_Ind[, factor := min_pop_Ind / V1 ]
   
   for (i in total_pop_HH[, file]) {
     factor_HH <- total_pop_HH[file == i, factor]
     factor_Fam <- total_pop_Fam[file == i, factor]
+    factor_Ind <- total_pop_Ind[file == i, factor]
     dt[file == i & Population != "S" & Population_Type == "Household", Normalised := as.character((as.numeric(Population) * factor_HH))]
     dt[file == i & Population != "S" & Population_Type == "Family", Normalised := as.character((as.numeric(Population) * factor_Fam))]
+    dt[file == i & Population != "S" & Population_Type == "Individual", Normalised := as.character((as.numeric(Population) * factor_Ind))]
     dt[is.na(Normalised), Normalised := "S"]
   }
   return(list(min_file, dt))
